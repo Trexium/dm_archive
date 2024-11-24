@@ -12,3 +12,7 @@
 /DungeonMastersArchive/DungeonMastersArchiveWeb/anteckningar.txt
 /DungeonMastersArchive/.vs/ProjectEvaluation
 /DungeonMastersArchive/DungeonMastersArchiveWeb/bin/Debug/net8.0
+/DungeonMastersArchive/DungeonMastersArchive/appsettings.json
+/DungeonMastersArchive/DungeonMastersArchive/bin/Debug/net8.0
+/DungeonMastersArchive/DungeonMastersArchive/obj
+*.user
