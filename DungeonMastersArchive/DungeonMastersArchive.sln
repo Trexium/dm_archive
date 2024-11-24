@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonMastersArchiveWeb", "DungeonMastersArchiveWeb\DungeonMastersArchiveWeb.csproj", "{9A62CC84-A00E-4E49-83B1-95F38A93D9FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonMastersArchiveWebOld", "DungeonMastersArchiveWeb\DungeonMastersArchiveWebOld.csproj", "{9A62CC84-A00E-4E49-83B1-95F38A93D9FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonMasterArchiveData", "DungeonMasterArchiveData\DungeonMasterArchiveData.csproj", "{1B6CE52D-A865-4C58-98DF-981127AC5D01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonMastersArchive", "DungeonMastersArchive\DungeonMastersArchive.csproj", "{F07DE329-D4F5-41DD-8CD8-0447E26D2205}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{1B6CE52D-A865-4C58-98DF-981127AC5D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B6CE52D-A865-4C58-98DF-981127AC5D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B6CE52D-A865-4C58-98DF-981127AC5D01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F07DE329-D4F5-41DD-8CD8-0447E26D2205}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F07DE329-D4F5-41DD-8CD8-0447E26D2205}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F07DE329-D4F5-41DD-8CD8-0447E26D2205}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F07DE329-D4F5-41DD-8CD8-0447E26D2205}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
