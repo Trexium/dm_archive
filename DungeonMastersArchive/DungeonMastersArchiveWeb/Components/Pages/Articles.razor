@@ -1,8 +1,55 @@
 ﻿@page "/articles"
+@using DungeonMastersArchiveWeb.Models;
+@using DungeonMastersArchiveWeb.Services
 
-<h3>Articles</h3>
+@inject IArticleService ArticleService
+
+<h3>Artiklar</h3>
+
+
+<div class="d-flex flex-row">
+    <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
+        <MudTable T="Models.Article">
+            <HeaderContent>
+                <MudTh>Artikel</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>Publicerad</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Artikel">@context.ArticleName</MudTd>
+                <MudTd DataLabel="Typ">@context.ArticleTypeDisplayText</MudTd>
+                <MudTd DataLabel="Publicerad">
+                    @if (context.IsPublished)
+                    {
+                        <MudChip T="string" Icon="@Icons.Material.Filled.Public" Color="Color.Success">Publicerat</MudChip>
+                    }
+                    else 
+                    {
+                        <MudChip T="string" Icon="@Icons.Material.Filled.PublicOff">Ej publicerat</MudChip>
+                    }
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+
+
+    <MudPaper Class=" pa-6 ma-2" Elevation="3">
+        <MudButtonGroup Vertical="true">
+            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/article">Ny Artikel</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/article">En knapp</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/article">En knapp med längre text</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</div>
+
+
+
+
 
 @code {
-
+    // private List<Article>
 }
 

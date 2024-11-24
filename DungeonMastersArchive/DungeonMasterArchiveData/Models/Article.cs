@@ -9,21 +9,21 @@ public partial class Article
 
     public DateTime? CreatedAt { get; set; }
 
-    public int? CreatedBy { get; set; }
+    public int CreatedBy { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
     public int? UpdateBy { get; set; }
 
-    public bool? Deleted { get; set; }
+    public bool IsDeleted { get; set; }
 
-    public bool? Published { get; set; }
+    public bool IsPublished { get; set; }
 
     public string ArticleName { get; set; } = null!;
 
-    public int? CampaignId { get; set; }
+    public int CampaignId { get; set; }
 
-    public int? ArticleType { get; set; }
+    public int ArticleTypeId { get; set; }
 
     public string? ArticleText { get; set; }
 
@@ -41,11 +41,11 @@ public partial class Article
 
     public virtual ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();
 
-    public virtual ArticleType? ArticleTypeNavigation { get; set; }
+    public virtual ArticleType ArticleType { get; set; } = null!;
 
-    public virtual Campaign? Campaign { get; set; }
+    public virtual Campaign Campaign { get; set; } = null!;
 
-    public virtual User? CreatedByNavigation { get; set; }
+    public virtual User CreatedByNavigation { get; set; } = null!;
 
     public virtual User? UpdateByNavigation { get; set; }
 }

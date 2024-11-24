@@ -7,9 +7,9 @@ public partial class ArticleTag
 {
     public int Id { get; set; }
 
-    public int? ArticleId { get; set; }
+    public int ArticleId { get; set; }
 
     public string Tag { get; set; } = null!;
 
-    public virtual Article? Article { get; set; }
+    public virtual Article Article { get; set; } = null!;
 }

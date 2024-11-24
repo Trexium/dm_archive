@@ -1,0 +1,52 @@
+﻿@using DungeonMastersArchiveWeb.Auth
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<MudDialog>
+    <TitleContent>
+        Logga in
+    </TitleContent>
+    <DialogContent>
+        <MudTextField Class="pa-2" T="string" @bind-Value="_username" Label="Användarnamn" Variant="Variant.Text" InputMode="InputMode.text" OnKeyDown="CheckForEnter" AutoFocus="true"></MudTextField>
+        <MudTextField Class="pa-2" T="string" @bind-Value="_password" Label="Lösenord" Variant="Variant.Text" InputType="InputType.Password" OnKeyDown="CheckForEnter"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Class="pa-2" OnClick="CheckUser">Logga in</MudButton>
+        <MudButton OnClick="Cancel">Avbryt</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+    private string _username;
+    private string _password;
+
+    private async Task CheckUser()
+    {
+        if (!string.IsNullOrEmpty(_username))
+        {
+            await ((DMArchiveAuthenticationStateProvider)AuthenticationStateProvider)
+            .LoginAsync(_username, _password);
+        }
+
+        if ((await AuthenticationStateProvider.GetAuthenticationStateAsync()).User != null)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task CheckForEnter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            await CheckUser();
+        }
+    }
+}

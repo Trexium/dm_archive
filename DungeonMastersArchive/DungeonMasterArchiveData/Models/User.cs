@@ -7,7 +7,13 @@ public partial class User
 {
     public int Id { get; set; }
 
-    public string UserName { get; set; } = null!;
+    public string Username { get; set; } = null!;
+
+    public string Password { get; set; } = null!;
+
+    public int Age { get; set; }
+
+    public int RoleId { get; set; }
 
     public virtual ICollection<Article> ArticleCreatedByNavigations { get; set; } = new List<Article>();
 
@@ -18,4 +24,6 @@ public partial class User
     public virtual ICollection<Campaign> CampaignCreatedByNavigations { get; set; } = new List<Campaign>();
 
     public virtual ICollection<Campaign> CampaignUpdateByNavigations { get; set; } = new List<Campaign>();
+
+    public virtual Role Role { get; set; } = null!;
 }

@@ -45,28 +45,31 @@ create table Article
 (
 	Id int identity(1, 1) primary key,
 	CreatedAt datetime default getdate(),
-	CreatedBy int foreign key references [User](Id),
+	CreatedBy int not null foreign key references [User](Id),
 	UpdatedAt datetime null,
 	UpdateBy int foreign key references [User](Id),
-	Deleted bit default 1,
-	Published bit default 0,
+	IsDeleted bit default 0,
+	IsPublished bit default 0,
 	ArticleName nvarchar(255) not null,
-	CampaignId int foreign key references Campaign(Id),
-	ArticleType int foreign key references ArticleType(Id),
+	CampaignId int not null foreign key references Campaign(Id),
+	ArticleTypeId int not null foreign key references ArticleType(Id),
 	ArticleText nvarchar(max),
+	ArticleYear int null,
+	ArticleMonth int null,
+	ArticleDay int null
 )
 
 create table ArticleLink
 (
 	Id int identity(1, 1) primary key,
-	ParentArticleId int foreign key references Article(Id),
-	ChildArticleId int foreign key references Article(Id)
+	ParentArticleId int not null foreign key references Article(Id),
+	ChildArticleId int not null foreign key references Article(Id)
 )
 
 create table ArticleTag
 (
 	Id int identity(1, 1) primary key,
-	ArticleId int foreign key references Article(Id),
+	ArticleId int not null foreign key references Article(Id),
 	Tag nvarchar(255) not null
 )
 
@@ -74,11 +77,12 @@ create table ArticleImage
 (
 	Id int identity(1, 1) primary key,
 	CreatedAt datetime default getdate(),
-	ArticleId int foreign key references Article(Id) null,
-	CampaignId int foreign key references Campaign(Id),
+	ArticleId int not null foreign key references Article(Id),
+	CampaignId int not null foreign key references Campaign(Id),
 	Title nvarchar(255),
 	ImageUrl nvarchar(512)
 )
+
 
 create table GenericValueStore
 (
