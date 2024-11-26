@@ -15,5 +15,5 @@ public partial class ArticleUserAccess
 
     public virtual AccessType? AccessType { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual ArchiveUser? User { get; set; }
 }

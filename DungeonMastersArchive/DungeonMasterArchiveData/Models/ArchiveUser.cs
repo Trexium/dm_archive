@@ -3,17 +3,15 @@ using System.Collections.Generic;
 
 namespace DungeonMasterArchiveData.Models;
 
-public partial class User
+public partial class ArchiveUser
 {
     public int Id { get; set; }
 
-    public string Username { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
-    public string Password { get; set; } = null!;
+    public string? AspNetUserId { get; set; }
 
-    public int Age { get; set; }
-
-    public int RoleId { get; set; }
+    public int? CurrentCampaignId { get; set; }
 
     public virtual ICollection<Article> ArticleCreatedByNavigations { get; set; } = new List<Article>();
 
@@ -21,9 +19,11 @@ public partial class User
 
     public virtual ICollection<ArticleUserAccess> ArticleUserAccesses { get; set; } = new List<ArticleUserAccess>();
 
+    public virtual AspNetUser? AspNetUser { get; set; }
+
     public virtual ICollection<Campaign> CampaignCreatedByNavigations { get; set; } = new List<Campaign>();
 
     public virtual ICollection<Campaign> CampaignUpdateByNavigations { get; set; } = new List<Campaign>();
 
-    public virtual Role Role { get; set; } = null!;
+    public virtual ICollection<UserCampaignRole> UserCampaignRoles { get; set; } = new List<UserCampaignRole>();
 }

@@ -1,0 +1,96 @@
+﻿@page "/article/{id:int?}"
+@using DungeonMastersArchive.Components.Components
+@using DungeonMastersArchive.Services
+
+@inject ISnackbar Snackbar
+@inject IValueStoreService ValueStoreService
+@inject IArticleService ArticleService
+
+
+@if (_model != null)
+{
+
+    <MudForm @ref="form">
+        <div class="d-flex flex-row">
+            <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
+                <div class="d-flex">
+                    <MudTextField Class="pa-2" T="string" @bind-Value="_model.ArticleName" Label="Titel" Variant="Variant.Text" Required RequiredError="Artikeln måste ha ett namn."></MudTextField>
+                    <MudSelect class="pa-2" Label="Artikeltyp" T="string" @bind-Value="_model.ArticleTypeId" Variant="Variant.Text" Required RequiredError="Artikeln måste ha en typ.">
+                        @foreach (var item in _articleTypes)
+                        {
+                            <MudSelectItem Value="@item.Key.ToString()">@item.Value</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+                <br />
+                <MudTextField class="pa-2" T="string" @bind-Value="_model.ArticleText" Label="Artikeltext" Variant="Variant.Text" Lines="5" />
+                <ImageUpload DisplayText="@_fileUploadDisplayText" Disabled="@_disableFileUpload"></ImageUpload>
+            </MudPaper>
+            <MudPaper Class=" pa-6 ma-2" Elevation="3">
+                <MudButtonGroup Vertical="true">
+                    @if (_model.IsPublished)
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.PublicOff" Href="/">Avpublicera</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.Public" Href="/">Publicera</MudButton>
+                    }
+                    <MudButton StartIcon="@Icons.Material.Filled.Delete" Href="/">Tabort</MudButton>
+
+                    <MudButton OnClick="SaveClick" StartIcon="@Icons.Material.Filled.Save">Spara</MudButton>
+                </MudButtonGroup>
+            </MudPaper>
+        </div>
+    </MudForm>
+
+}
+
+
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Models.Article _model;
+
+    private List<Models.ValueStoreItem> _articleTypes;
+
+    MudForm form;
+
+    private string _fileUploadDisplayText = "Dra och släpp bilder här eller klicka";
+    private bool _disableFileUpload = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _articleTypes = await ValueStoreService.GetArticleTypes();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+
+        }
+        else
+        {
+            _model = new Models.Article
+            {
+
+            };
+            _fileUploadDisplayText = "Spara innan du börjar ladda upp bilder";
+            _disableFileUpload = true;
+        }
+    }
+
+    private async Task SaveClick()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            _model = await ArticleService.SaveArticle(_model);
+            Snackbar.Add($"Artikeln {_model.ArticleName} har sparats.", Severity.Success);
+        }
+    }
+}

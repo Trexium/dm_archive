@@ -1,11 +1,26 @@
 ﻿
+create table [Role]
+(
+	Id int identity(1,1) primary key, 
+	[Name] nvarchar(255) not null
+)
 
-create table [User]
+create table ArchiveUser
 (
 	Id int identity(1,1) primary key,
-	UserName nvarchar(255) not null
-
+	[Name] nvarchar(255) not null,
+	AspNetUserId nvarchar(450) foreign key references AspNetUsers(Id),
+	CurrentCampaignId int
 )
+
+create table UserCampaignRole
+(
+	UserId int foreign key references ArchiveUser(Id) not null,
+	CampaignId int foreign key references Campaign(Id) not null,
+	RoleId int foreign key references [Role](Id) not null,
+	primary key (UserId, CampaignId, RoleId)
+)
+
 
 create table AccessType
 (
@@ -18,7 +33,7 @@ create table ArticleUserAccess
 (
 	Id int identity(1, 1) primary key,
 	CreatedAt datetime default getdate(),
-	UserId int foreign key references [User](Id),
+	UserId int foreign key references ArchiveUser(Id),
 	AccessTypeId int foreign key references AccessType(Id)
 )
 
@@ -27,9 +42,9 @@ create table Campaign
 (
 	Id int identity(1, 1) primary key, 
 	CreatedAt datetime default getdate(),
-	CreatedBy int foreign key references [User](Id),
+	CreatedBy int foreign key references ArchiveUser(Id),
 	UpdatedAt datetime null,
-	UpdateBy int foreign key references [User](Id),
+	UpdateBy int foreign key references ArchiveUser(Id),
 	CampaignName nvarchar(255) not null
 )
 
@@ -45,11 +60,11 @@ create table Article
 (
 	Id int identity(1, 1) primary key,
 	CreatedAt datetime default getdate(),
-	CreatedBy int not null foreign key references [User](Id),
+	CreatedBy int not null foreign key references ArchiveUser(Id),
 	UpdatedAt datetime null,
-	UpdateBy int foreign key references [User](Id),
-	IsDeleted bit default 0,
-	IsPublished bit default 0,
+	UpdateBy int foreign key references ArchiveUser(Id),
+	IsDeleted bit not null default 0,
+	IsPublished bit not null default 0,
 	ArticleName nvarchar(255) not null,
 	CampaignId int not null foreign key references Campaign(Id),
 	ArticleTypeId int not null foreign key references ArticleType(Id),

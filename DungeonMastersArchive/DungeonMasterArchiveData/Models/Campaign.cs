@@ -21,7 +21,9 @@ public partial class Campaign
 
     public virtual ICollection<Article> Articles { get; set; } = new List<Article>();
 
-    public virtual User? CreatedByNavigation { get; set; }
+    public virtual ArchiveUser? CreatedByNavigation { get; set; }
 
-    public virtual User? UpdateByNavigation { get; set; }
+    public virtual ArchiveUser? UpdateByNavigation { get; set; }
+
+    public virtual ICollection<UserCampaignRole> UserCampaignRoles { get; set; } = new List<UserCampaignRole>();
 }

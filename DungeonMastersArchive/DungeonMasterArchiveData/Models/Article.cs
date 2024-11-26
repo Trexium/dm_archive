@@ -45,7 +45,7 @@ public partial class Article
 
     public virtual Campaign Campaign { get; set; } = null!;
 
-    public virtual User CreatedByNavigation { get; set; } = null!;
+    public virtual ArchiveUser CreatedByNavigation { get; set; } = null!;
 
-    public virtual User? UpdateByNavigation { get; set; }
+    public virtual ArchiveUser? UpdateByNavigation { get; set; }
 }
