@@ -3,6 +3,7 @@ using DbModels = DungeonMasterArchiveData.Models;
 using DungeonMastersArchive.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace DungeonMastersArchive.Services
 {
@@ -11,6 +12,7 @@ namespace DungeonMastersArchive.Services
         Task<Models.Article> GetArticle(int id);
         Task<Models.Article> SaveArticle(Models.Article article);
         Task<List<Models.Article>> GetArticles();
+        Task<bool> DeleteArticle(int id);
     }
     public class ArticleService : IArticleService
     {
@@ -21,6 +23,21 @@ namespace DungeonMastersArchive.Services
         {
             _context = context;
             _userService = userService;
+        }
+
+        public async Task<bool> DeleteArticle(int id)
+        {
+            var article = _context.Articles.FirstOrDefault(m => m.Id == id);
+            if (article != null)
+            {
+                article.IsDeleted = true;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public async Task<Models.Article> GetArticle(int id)
@@ -80,7 +97,7 @@ namespace DungeonMastersArchive.Services
         public async Task<List<Models.Article>> GetArticles()
         {
             var user = await _userService.GetCurrentUser();
-            var dbArticles = _context.Articles.Include(m => m.ArticleType).Where(m => m.CampaignId == user.CurrentCampaignId).ToList();
+            var dbArticles = _context.Articles.Include(m => m.ArticleType).Where(m => m.CampaignId == user.CurrentCampaignId && !m.IsDeleted).ToList();
             var articles = new List<Models.Article>();
             foreach (var dbArticle in dbArticles)
             {
@@ -113,6 +130,7 @@ namespace DungeonMastersArchive.Services
             {
                 dbArticle = new DbModels.Article();
                 dbArticle.CreatedBy = user.Id;
+                dbArticle.CampaignId = user.CurrentCampaignId.Value;
             }
             else
             {
@@ -121,14 +139,15 @@ namespace DungeonMastersArchive.Services
                 dbArticle.UpdatedAt = DateTime.Now;
             }
             dbArticle.ArticleDay = article.TimelineDay;
-            dbArticle.ArticleMonth = article.TimelineMonth;
+            dbArticle.ArticleMonth = article.TimelineMonthId;
             dbArticle.ArticleYear = article.TimelineYear;
 
             dbArticle.ArticleText = article.ArticleText;
             dbArticle.ArticleName = article.ArticleName;
             dbArticle.ArticleTypeId = int.TryParse(article.ArticleTypeId, out int result) ? result : 8;
-            dbArticle.CampaignId = 2; //article.CampaignId;
-            
+            dbArticle.CampaignId = 2; //dbArticle.CampaignId = article.CampaignId;
+
+
             if (!article.Id.HasValue)
             {
                 _context.Articles.Add(dbArticle);

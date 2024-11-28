@@ -1,0 +1,127 @@
+﻿@using DungeonMastersArchive.Components.Components
+@using DungeonMastersArchive.Services
+
+@inject ISnackbar Snackbar
+@inject IValueStoreService ValueStoreService
+@inject IArticleService ArticleService
+
+
+@if (_model != null)
+{
+
+    <MudForm @ref="form">
+        <div class="d-flex flex-row">
+            <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
+                <div class="d-flex">
+                    <MudTextField Class="pa-2" T="string" @bind-Value="_model.ArticleName" Label="Titel" Variant="Variant.Text" Required RequiredError="Artikeln måste ha ett namn."></MudTextField>
+                    @if (!ArticleTypeId.HasValue)
+                    {
+                        <MudSelect class="pa-2" Label="Artikeltyp" T="string" @bind-Value="_model.ArticleTypeId" Variant="Variant.Text" Required RequiredError="Artikeln måste ha en typ.">
+                            @foreach (var item in _articleTypes.OrderBy(m => m.Key))
+                            {
+                                <MudSelectItem Value="@item.Key.ToString()">@item.Value</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                </div>
+                @if (_model.ArticleTypeId == "5")
+                {
+                    <div class="d-flex flex-row">
+                        <MudNumericField Class="d-flex pa-2" Label="År" T="int" Min="341" Max="500" @bind-Value="_model.TimelineYear"  HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha ett år."></MudNumericField>
+                        <MudSelect class="d-flex pa-2" Label="Månad" T="string" @bind-Value="_model.TimelineMonthStringId" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en månad.">
+                            @foreach(var item in _months.OrderBy(m => m.Key)){
+                                <MudSelectItem Value="@item.Key.ToString()">@item.Value</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudNumericField Class="d-flex pa-2" Label="Dag" T="int" Min="1" Max="30" @bind-Value="_model.TimelineDay" HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en dag."></MudNumericField>
+                    </div>
+                }
+                <br />
+                <MudTextField class="pa-2" T="string" @bind-Value="_model.ArticleText" Label="Artikeltext" Variant="Variant.Outlined" Lines="5" />
+                <ImageUpload DisplayText="@_fileUploadDisplayText" Disabled="@_disableFileUpload"></ImageUpload>
+            </MudPaper>
+            <MudPaper Class=" pa-6 ma-2" Elevation="3">
+                <MudButtonGroup Vertical="true">
+                    @if (_model.IsPublished)
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.PublicOff" Href="/">Avpublicera</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.Public" Href="/">Publicera</MudButton>
+                    }
+                    <MudButton StartIcon="@Icons.Material.Filled.Delete" Href="/">Tabort</MudButton>
+
+                    <MudButton OnClick="SaveClick" StartIcon="@Icons.Material.Filled.Save">Spara</MudButton>
+                </MudButtonGroup>
+            </MudPaper>
+        </div>
+    </MudForm>
+
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    [Parameter]
+    public int? ArticleTypeId { get; set; }
+
+    private Models.Article _model;
+
+    private List<Models.ValueStoreItem<int, string>> _articleTypes;
+    private List<Models.ValueStoreItem<int, string>> _months;
+
+    MudForm form;
+
+    private string _fileUploadDisplayText = "Dra och släpp bilder här eller klicka";
+    private bool _disableFileUpload = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _articleTypes = await ValueStoreService.GetArticleTypes();
+        _months = await ValueStoreService.GetGenericValueStoreGroup<int, string>("months");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            _model = await ArticleService.GetArticle(Id.Value);
+        }
+        else
+        {
+            _model = new Models.Article
+            {
+
+            };
+            _fileUploadDisplayText = "Spara innan du börjar ladda upp bilder";
+            _disableFileUpload = true;
+        }
+
+        if (_model.TimelineYear == 0){
+            _model.TimelineYear = 386;
+        }
+        if (_model.TimelineDay == 0) {
+            _model.TimelineDay = 1;
+        }
+    }
+
+    private async Task SaveClick()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            if (ArticleTypeId.HasValue)
+            {
+                _model.ArticleTypeId = ArticleTypeId.Value.ToString();
+            }
+            if (!string.IsNullOrEmpty(_model.TimelineMonthStringId)) {
+                _model.TimelineMonthId = int.Parse(_model.TimelineMonthStringId);
+            }
+            _model = await ArticleService.SaveArticle(_model);
+            Snackbar.Add($"Artikeln {_model.ArticleName} har sparats.", Severity.Success);
+        }
+    }
+}

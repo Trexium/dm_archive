@@ -1,15 +1,17 @@
-﻿namespace DungeonMastersArchive.Models
+﻿using Microsoft.IdentityModel.Tokens;
+
+namespace DungeonMastersArchive.Models
 {
-    public class ValueStoreItem
+    public class ValueStoreItem<KeyType, ValueType>
     {
         public ValueStoreItem() { }
-        public ValueStoreItem(int key, string value)
+        public ValueStoreItem(KeyType key, ValueType value)
         {
             Key = key;
             Value = value;
         }
 
-        public int Key { get; set; }
-        public string Value { get; set; }
+        public KeyType Key { get; set; }
+        public ValueType Value { get; set; }
     }
 }

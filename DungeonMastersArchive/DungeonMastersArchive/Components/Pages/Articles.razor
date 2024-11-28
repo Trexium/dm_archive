@@ -3,6 +3,7 @@
 @using DungeonMastersArchive.Services
 
 @inject IArticleService ArticleService
+@inject ISnackbar Snackbar
 
 <h3>Artiklar</h3>
 
@@ -13,20 +14,25 @@
             <HeaderContent>
                 <MudTh>Artikel</MudTh>
                 <MudTh>Typ</MudTh>
-                <MudTh>Publicerad</MudTh>
+                <MudTh>Publicerad?</MudTh>
+                <MudTh>Åtgärder</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Artikel">@context.ArticleName</MudTd>
                 <MudTd DataLabel="Typ">@context.ArticleTypeDisplayText</MudTd>
-                <MudTd DataLabel="Publicerad">
+                <MudTd DataLabel="Publicerad?">
                     @if (context.IsPublished)
                     {
-                        <MudChip T="string" Icon="@Icons.Material.Filled.Public" Color="Color.Success">Publicerat</MudChip>
+                        <MudChip T="string" Icon="@Icons.Material.Filled.Public" Color="Color.Success">Ja</MudChip>
                     }
                     else 
                     {
-                        <MudChip T="string" Icon="@Icons.Material.Filled.PublicOff">Ej publicerat</MudChip>
+                        <MudChip T="string" Icon="@Icons.Material.Filled.PublicOff">Nej</MudChip>
                     }
+                </MudTd>
+                <MudTd DataLabel="Åtgärder">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@GetEditLink(context.Id.Value)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteArticle(context.Id.Value)" />
                 </MudTd>
             </RowTemplate>
             <PagerContent>
@@ -51,6 +57,20 @@
 
 @code {
     private List<Models.Article> _articles;
+
+    private string GetEditLink(int id){
+        return $"/article/{id}";
+    }
+
+    private async Task DeleteArticle(int id){
+        if (await ArticleService.DeleteArticle(id)){
+            Snackbar.Add($"Artikeln har tagits bort.", Severity.Success);
+        }
+        else {
+            Snackbar.Add($"Ett problem inträffade när artikeln skulle tas bort.", Severity.Error);
+        }
+    
+    }
 
     protected override async Task OnInitializedAsync()
     {

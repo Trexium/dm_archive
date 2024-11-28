@@ -15,7 +15,9 @@
         public bool IsPublished { get; set; }
         public int CampaignId { get; set; }
         public int TimelineDay { get; set; }
-        public int TimelineMonth { get; set; }
+        public int? TimelineMonthId { get; set; }
+        public string TimelineMonthStringId { get; set; }
+        public string TimelineMonthText { get; set; }
         public int TimelineYear { get; set; }
         public List<ArticleImage> Images { get; set; }
         public List<ArticleLink> ParentLinks { get; set; }
