@@ -9,15 +9,19 @@ public partial class ArticleImage
 
     public DateTime? CreatedAt { get; set; }
 
-    public int ArticleId { get; set; }
+    public int CreatedBy { get; set; }
 
-    public int CampaignId { get; set; }
+    public int? ArticleId { get; set; }
+
+    public int? CampaignId { get; set; }
 
     public string? Title { get; set; }
 
-    public string? ImageUrl { get; set; }
+    public string? FileName { get; set; }
 
-    public virtual Article Article { get; set; } = null!;
+    public virtual Article? Article { get; set; }
 
-    public virtual Campaign Campaign { get; set; } = null!;
+    public virtual Campaign? Campaign { get; set; }
+
+    public virtual ArchiveUser CreatedByNavigation { get; set; } = null!;
 }

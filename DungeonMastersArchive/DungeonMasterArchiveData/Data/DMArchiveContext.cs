@@ -80,7 +80,7 @@ public partial class DMArchiveContext : DbContext
 
         modelBuilder.Entity<Article>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Article__3214EC0751BF310F");
+            entity.HasKey(e => e.Id).HasName("PK__Article__3214EC07B9ACCB41");
 
             entity.ToTable("Article");
 
@@ -93,66 +93,69 @@ public partial class DMArchiveContext : DbContext
             entity.HasOne(d => d.ArticleType).WithMany(p => p.Articles)
                 .HasForeignKey(d => d.ArticleTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Article__Article__4959E263");
+                .HasConstraintName("FK__Article__Article__6F7F8B4B");
 
             entity.HasOne(d => d.Campaign).WithMany(p => p.Articles)
                 .HasForeignKey(d => d.CampaignId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Article__Campaig__4865BE2A");
+                .HasConstraintName("FK__Article__Campaig__6E8B6712");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ArticleCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Article__Created__44952D46");
+                .HasConstraintName("FK__Article__Created__6ABAD62E");
 
             entity.HasOne(d => d.UpdateByNavigation).WithMany(p => p.ArticleUpdateByNavigations)
                 .HasForeignKey(d => d.UpdateBy)
-                .HasConstraintName("FK__Article__UpdateB__4589517F");
+                .HasConstraintName("FK__Article__UpdateB__6BAEFA67");
         });
 
         modelBuilder.Entity<ArticleImage>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ArticleI__3214EC07310B26B7");
+            entity.HasKey(e => e.Id).HasName("PK__ArticleI__3214EC07DE330E50");
 
             entity.ToTable("ArticleImage");
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.ImageUrl).HasMaxLength(512);
+            entity.Property(e => e.FileName).HasMaxLength(512);
             entity.Property(e => e.Title).HasMaxLength(255);
 
             entity.HasOne(d => d.Article).WithMany(p => p.ArticleImages)
                 .HasForeignKey(d => d.ArticleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ArticleIm__Artic__53D770D6");
+                .HasConstraintName("FK__ArticleIm__Artic__7FB5F314");
 
             entity.HasOne(d => d.Campaign).WithMany(p => p.ArticleImages)
                 .HasForeignKey(d => d.CampaignId)
+                .HasConstraintName("FK__ArticleIm__Campa__00AA174D");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ArticleImages)
+                .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ArticleIm__Campa__54CB950F");
+                .HasConstraintName("FK__ArticleIm__Creat__7EC1CEDB");
         });
 
         modelBuilder.Entity<ArticleLink>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ArticleL__3214EC07C1632856");
+            entity.HasKey(e => e.Id).HasName("PK__ArticleL__3214EC07B9FA5161");
 
             entity.ToTable("ArticleLink");
 
             entity.HasOne(d => d.ChildArticle).WithMany(p => p.ArticleLinkChildArticles)
                 .HasForeignKey(d => d.ChildArticleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ArticleLi__Child__4D2A7347");
+                .HasConstraintName("FK__ArticleLi__Child__73501C2F");
 
             entity.HasOne(d => d.ParentArticle).WithMany(p => p.ArticleLinkParentArticles)
                 .HasForeignKey(d => d.ParentArticleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ArticleLi__Paren__4C364F0E");
+                .HasConstraintName("FK__ArticleLi__Paren__725BF7F6");
         });
 
         modelBuilder.Entity<ArticleTag>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ArticleT__3214EC075191FC0D");
+            entity.HasKey(e => e.Id).HasName("PK__ArticleT__3214EC07BC90BACD");
 
             entity.ToTable("ArticleTag");
 
@@ -161,12 +164,12 @@ public partial class DMArchiveContext : DbContext
             entity.HasOne(d => d.Article).WithMany(p => p.ArticleTags)
                 .HasForeignKey(d => d.ArticleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ArticleTa__Artic__5006DFF2");
+                .HasConstraintName("FK__ArticleTa__Artic__762C88DA");
         });
 
         modelBuilder.Entity<ArticleType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ArticleT__3214EC07BAE19C77");
+            entity.HasKey(e => e.Id).HasName("PK__ArticleT__3214EC07B13646EF");
 
             entity.ToTable("ArticleType");
 

@@ -60,6 +60,7 @@ builder.Services.Configure<EmailSenderSettings>(emailSettings);
 builder.Services.AddScoped<IValueStoreService, ValueStoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
+builder.Services.AddSingleton<ImageService>();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 

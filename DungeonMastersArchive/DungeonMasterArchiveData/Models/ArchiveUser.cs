@@ -15,6 +15,8 @@ public partial class ArchiveUser
 
     public virtual ICollection<Article> ArticleCreatedByNavigations { get; set; } = new List<Article>();
 
+    public virtual ICollection<ArticleImage> ArticleImages { get; set; } = new List<ArticleImage>();
+
     public virtual ICollection<Article> ArticleUpdateByNavigations { get; set; } = new List<Article>();
 
     public virtual ICollection<ArticleUserAccess> ArticleUserAccesses { get; set; } = new List<ArticleUserAccess>();

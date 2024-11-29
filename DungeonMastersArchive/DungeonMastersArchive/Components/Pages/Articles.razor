@@ -44,9 +44,9 @@
 
     <MudPaper Class=" pa-6 ma-2" Elevation="3">
         <MudButtonGroup Vertical="true">
-            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/article">Ny Artikel</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/article">En knapp</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/article">En knapp med längre text</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/edit-article">Ny Artikel</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/">En knapp</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/">En knapp med längre text</MudButton>
         </MudButtonGroup>
     </MudPaper>
 </div>
@@ -59,7 +59,7 @@
     private List<Models.Article> _articles;
 
     private string GetEditLink(int id){
-        return $"/article/{id}";
+        return $"/edit-article/{id}";
     }
 
     private async Task DeleteArticle(int id){

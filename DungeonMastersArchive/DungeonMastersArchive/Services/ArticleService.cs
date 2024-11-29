@@ -4,6 +4,7 @@ using DungeonMastersArchive.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Humanizer;
 
 namespace DungeonMastersArchive.Services
 {
@@ -13,6 +14,7 @@ namespace DungeonMastersArchive.Services
         Task<Models.Article> SaveArticle(Models.Article article);
         Task<List<Models.Article>> GetArticles();
         Task<bool> DeleteArticle(int id);
+        Task RemoveImageFromArticle(int imageId);
     }
     public class ArticleService : IArticleService
     {
@@ -72,7 +74,19 @@ namespace DungeonMastersArchive.Services
 
             if (dbArticle.ArticleImages != null && dbArticle.ArticleImages.Any())
             {
-
+                model.Images = new List<ArticleImageMetadata>();
+                foreach (var dbImage in dbArticle.ArticleImages)
+                {
+                    model.Images.Add(new ArticleImageMetadata
+                    {
+                        Id = dbImage.Id,
+                        ArticleId = dbImage.ArticleId,
+                        CampaignId = dbImage.CampaignId,
+                        CreatedAt = dbImage.CreatedAt,
+                        FileName = dbImage.FileName,
+                        Title = dbImage.Title
+                    });
+                }
             }
 
             if (dbArticle.ArticleLinkParentArticles != null && dbArticle.ArticleLinkParentArticles.Any())
@@ -121,6 +135,16 @@ namespace DungeonMastersArchive.Services
             return articles;
         }
 
+        public async Task RemoveImageFromArticle(int imageId)
+        {
+            var image = _context.ArticleImages.FirstOrDefault(m => m.Id == imageId);
+            if (image != null)
+            {
+                image.ArticleId = null;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task<Models.Article> SaveArticle(Article article)
         {
             var user = await _userService.GetCurrentUser();
@@ -130,7 +154,7 @@ namespace DungeonMastersArchive.Services
             {
                 dbArticle = new DbModels.Article();
                 dbArticle.CreatedBy = user.Id;
-                dbArticle.CampaignId = user.CurrentCampaignId.Value;
+                dbArticle.CampaignId = user.CurrentCampaignId;
             }
             else
             {
@@ -151,6 +175,34 @@ namespace DungeonMastersArchive.Services
             if (!article.Id.HasValue)
             {
                 _context.Articles.Add(dbArticle);
+            }
+
+            if (article.Images != null && article.Images.Any())
+            {
+                var currentIds = article.Images.Where(m => m.Id.HasValue).Select(m => m.Id.Value).ToList();
+
+                var toBeRemoved = dbArticle.ArticleImages.Where(m => !currentIds.Contains(m.Id));
+
+                foreach (var image in toBeRemoved)
+                {
+                    image.ArticleId = null;
+                }
+
+                var imagesToAdd = article.Images.Where(m => m.Id == null).ToList();
+                foreach (var image in imagesToAdd)
+                {
+                    if (dbArticle.ArticleImages == null)
+                    {
+                        dbArticle.ArticleImages = new List<DbModels.ArticleImage>();
+                    }
+                    dbArticle.ArticleImages.Add(new DbModels.ArticleImage
+                    {
+                        CampaignId = dbArticle.CampaignId,
+                        CreatedBy = user.Id,
+                        FileName = image.FileName,
+                        Title = image.Title
+                    });
+                }
             }
 
             try

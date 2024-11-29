@@ -7,6 +7,7 @@ namespace DungeonMastersArchive.Services
     {
         Task<List<ValueStoreItem<int, string>>> GetArticleTypes();
         Task<List<ValueStoreItem<KeyType, ValueType>>> GetGenericValueStoreGroup<KeyType, ValueType>(string group);
+        Task<List<ValueStoreItem<int, string>>> GetArticles(int campaignId);
     }
     public class ValueStoreService : IValueStoreService
     {
@@ -15,6 +16,13 @@ namespace DungeonMastersArchive.Services
         public ValueStoreService(DMArchiveContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<ValueStoreItem<int, string>>> GetArticles(int campaignId)
+        {
+            return _context.Articles
+                .Where(m => m.CampaignId == campaignId)
+                .Select(m => new ValueStoreItem<int, string> { Key = m.Id, Value = m.ArticleName}).ToList();
         }
 
         public async Task<List<ValueStoreItem<int, string>>> GetArticleTypes()

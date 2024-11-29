@@ -34,7 +34,7 @@ namespace DungeonMastersArchive.Services
                 {
                     Id = dbUser.Id,
                     Name = dbUser.Name,
-                    CurrentCampaignId = dbUser.CurrentCampaignId
+                    CurrentCampaignId = dbUser.CurrentCampaignId ?? 0
                 };
 
                 return user;
