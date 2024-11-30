@@ -13,7 +13,7 @@
     <MudForm @ref="_form">
         <MudStack Row="true">
             <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
-                <MudTabs Centered="true" >
+                <MudTabs Centered="true">
                     <MudTabPanel Text="Grundläggande" Icon="@Icons.Material.Filled.Article">
                         <br />
                         <MudStack Row="true">
@@ -122,14 +122,15 @@
                     <MudTabPanel Text="Länkar" Icon="@Icons.Material.Filled.Link">
 
                         <br />
-                        @if (_model.ChildLinks != null){
-                            <MudTable T="Models.ValueStoreItem<int, string>" Items="_articleValueStore.Where(m => _model.ChildLinks.Contains(m.Key))">
+                        @if (_model.ChildLinks != null)
+                        {
+                            <MudTable T="Models.ArticleLink" Items="_model.ChildLinks" Dense="true">
                                 <HeaderContent>
                                     <MudTh>Artikel</MudTh>
                                     <MudTh>Åtgärder</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
-                                    <MudTd DataLabel="Artikel">@context.Value</MudTd>
+                                    <MudTd DataLabel="Artikel">@context.ChildName</MudTd>
                                     <MudTd DataLabel="Åtgärd"><MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteLink(context)"></MudIconButton></MudTd>
                                 </RowTemplate>
                             </MudTable>
@@ -137,7 +138,7 @@
                         <br />
                         <MudAutocomplete @ref="_linkAutoComplete" T="Models.ValueStoreItem<int, string>" Label="Välj artikel att länka till" SearchFunc="SearchArticleValueStore" ToStringFunc="@(e=> e==null?null : $"{e.Value}")" ShowProgressIndicator="true" Clearable="true" ValueChanged="AddChildLink">
                             <BeforeItemsTemplate>
-                                
+
                             </BeforeItemsTemplate>
                             <NoItemsTemplate>
                                 <MudText Align="Align.Center">Inga artiklar hittades.</MudText>
@@ -146,7 +147,41 @@
                     </MudTabPanel>
                     <MudTabPanel Text="Taggar" Icon="@Icons.Material.Filled.Tag">
                         <br />
+                        @if (_model.Tags != null)
+                        {
+                            <MudTable T="Models.ArticleTag" Items="_model.Tags" Dense="true">
+                                <HeaderContent>
+                                    <MudTh>Tag</MudTh>
+                                    <MudTh>Åtgärder</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Tag">
+                                        <MudText Class="d-flex align-center justify-start">
+                                            <MudIcon Icon="@Icons.Material.Filled.Tag" />@context.Tag
+                                        </MudText>
+                                    </MudTd>
+                                    <MudTd DataLabel="Åtgärd"><MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteTag(context)"></MudIconButton></MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        <br />
+                        <MudAutocomplete @ref="_tagAutoComplete" T="Models.ValueStoreItem<int, string>" Label="Välj eller hitta på en tag" SearchFunc="SearchTagValueStore" ToStringFunc="@(e=> e==null?null : $"{e.Value}")" ShowProgressIndicator="true" Clearable="true" ValueChanged="AddArticleTag">
+                            <BeforeItemsTemplate>
 
+                            </BeforeItemsTemplate>
+                            <NoItemsTemplate>
+                                @if (!string.IsNullOrEmpty(_tagAutoComplete.Text) && _tagAutoComplete.Text.Length >= 3)
+                                {
+                                    <div class=" d-flex flex-grow-1 flex-wrap justify-center align-center">
+                                        <MudButtonGroup Class="align-center">
+                                            <MudText>@_tagAutoComplete.Text</MudText>
+                                            <MudIconButton Icon="@Icons.Material.Filled.NewLabel" OnClick="() => NewArticleTag(_tagAutoComplete.Text)"></MudIconButton>
+                                        </MudButtonGroup>
+                                    </div>
+                                }
+                                <MudText Align="Align.Center">Inga artiklar hittades.</MudText>
+                            </NoItemsTemplate>
+                        </MudAutocomplete>
                     </MudTabPanel>
                 </MudTabs>
             </MudPaper>
@@ -182,11 +217,13 @@
     private List<Models.ValueStoreItem<int, string>> _articleTypes;
     private List<Models.ValueStoreItem<int, string>> _months;
     private List<Models.ValueStoreItem<int, string>> _articleValueStore;
+    private List<Models.ValueStoreItem<int, string>> _tagsValueStore;
 
     private MudForm _form;
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
     private MudCarousel<Models.ArticleImageMetadata>? _carousel;
     private MudAutocomplete<Models.ValueStoreItem<int, string>> _linkAutoComplete;
+    private MudAutocomplete<Models.ValueStoreItem<int, string>> _tagAutoComplete;
 
     private string _fileUploadDisplayText = "Dra och släpp bilder här eller klicka";
     private bool _disableFileUpload = false;
@@ -202,6 +239,7 @@
         _articleTypes = await ValueStoreService.GetArticleTypes();
         _months = await ValueStoreService.GetGenericValueStoreGroup<int, string>("months");
         _articleValueStore = await ValueStoreService.GetArticles(user.CurrentCampaignId);
+        _tagsValueStore = await ValueStoreService.GetTags();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -294,30 +332,106 @@
     {
         IEnumerable<Models.ValueStoreItem<int, string>> hits = _articleValueStore;
 
-        if (_model.ChildLinks != null) {
-            hits = hits.Where(m => !_model.ChildLinks.Contains(m.Key));
+        if (_model.Id.HasValue){
+            hits = hits.Where(m => m.Key != _model.Id);
+        }
+        if (_model.ChildLinks != null)
+        {
+            hits = hits.Where(m => !_model.ChildLinks.Select(m => m.ChildArticleId).Contains(m.Key));
         }
 
-        if (string.IsNullOrEmpty(value)){
+        if (string.IsNullOrEmpty(value))
+        {
 
         }
-        else {
+        else
+        {
             hits = hits.Where(m => m.Value.Contains(value));
         }
 
         return hits;
     }
 
-    private async Task AddChildLink(Models.ValueStoreItem<int, string> value){
-        if (_model.ChildLinks == null) {
-            _model.ChildLinks = new List<int>();
+    private async Task AddChildLink(Models.ValueStoreItem<int, string> value)
+    {
+        if (_model.ChildLinks == null)
+        {
+            _model.ChildLinks = new List<Models.ArticleLink>();
         }
-        _model.ChildLinks.Add(value.Key);
+        _model.ChildLinks.Add(new Models.ArticleLink{ ChildArticleId = value.Key, ChildName = value.Value});
         await _linkAutoComplete.ResetAsync();
     }
 
-    private async Task DeleteLink(Models.ValueStoreItem<int, string> link)
+    private async Task DeleteLink(Models.ArticleLink link)
     {
-        _model.ChildLinks.Remove(link.Key);
+        _model.ChildLinks.Remove(link);
     }
+
+
+    private async Task<IEnumerable<Models.ValueStoreItem<int, string>>> SearchTagValueStore(string value, CancellationToken token)
+    {
+        IEnumerable<Models.ValueStoreItem<int, string>> hits = _tagsValueStore;
+
+        if (_model.Tags != null)
+        {
+            hits = hits.Where(m => !_model.Tags.Select(m => m.Id).Contains(m.Key));
+        }
+
+        if (string.IsNullOrEmpty(value))
+        {
+
+        }
+        else
+        {
+            hits = hits.Where(m => m.Value.Contains(value));
+        }
+
+        return hits;
+    }
+
+    private async Task AddArticleTag(Models.ValueStoreItem<int, string> value)
+    {
+        if (_model.Tags == null)
+        {
+            _model.Tags = new List<Models.ArticleTag>();
+        }
+        _model.Tags.Add(new Models.ArticleTag { Id = value.Key, Tag = value.Value });
+        await _tagAutoComplete.ResetAsync();
+        Snackbar.Add($"Tag \"{value.Value}\" tillagd.", Severity.Info);
+    }
+
+    private async Task NewArticleTag(string text)
+    {
+        if (_model.Tags == null)
+        {
+            _model.Tags = new List<Models.ArticleTag>();
+        }
+
+        if (_model.Tags.Select(m => m.Tag).Contains(text))
+        {
+            Snackbar.Add("Tag finns redan på artikeln.", Severity.Warning);
+        }
+        else
+        {
+            var existingTag = _tagsValueStore.FirstOrDefault(m => m.Value == text);
+            if (existingTag != null)
+            {
+                await AddArticleTag(existingTag);
+            }
+            else
+            {
+                _model.Tags.Add(new Models.ArticleTag { Tag = text });
+                Snackbar.Add($"Tag \"{text}\" tillagd.", Severity.Info);
+                await _tagAutoComplete.ResetAsync();
+            }
+        }
+    }
+
+    private async Task DeleteTag(Models.ArticleTag tag)
+    {
+        _model.Tags.Remove(tag);
+        Snackbar.Add($"Tag \"{tag.Tag}\" borttagen.", Severity.Info);
+    }
+
+
 }

@@ -8,6 +8,7 @@ namespace DungeonMastersArchive.Services
         Task<List<ValueStoreItem<int, string>>> GetArticleTypes();
         Task<List<ValueStoreItem<KeyType, ValueType>>> GetGenericValueStoreGroup<KeyType, ValueType>(string group);
         Task<List<ValueStoreItem<int, string>>> GetArticles(int campaignId);
+        Task<List<ValueStoreItem<int, string>>> GetTags();
     }
     public class ValueStoreService : IValueStoreService
     {
@@ -16,6 +17,11 @@ namespace DungeonMastersArchive.Services
         public ValueStoreService(DMArchiveContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<ValueStoreItem<int, string>>> GetTags()
+        {
+            return _context.ArticleTags.Select(m => new ValueStoreItem<int, string> { Key = m.Id, Value = m.Tag }).ToList();
         }
 
         public async Task<List<ValueStoreItem<int, string>>> GetArticles(int campaignId)

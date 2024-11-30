@@ -20,8 +20,8 @@
         public string TimelineMonthText { get; set; }
         public int TimelineYear { get; set; }
         public List<ArticleImageMetadata> Images { get; set; }
-        public List<int> ParentLinks { get; set; }
-        public List<int> ChildLinks { get; set; }
+        public List<ArticleLink> ParentLinks { get; set; }
+        public List<ArticleLink> ChildLinks { get; set; }
         public List<ArticleTag> Tags { get; set; }
     }
 }

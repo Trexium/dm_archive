@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Humanizer;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DungeonMastersArchive.Services
 {
@@ -47,8 +48,6 @@ namespace DungeonMastersArchive.Services
             var dbArticle = _context.Articles
                 .Include(m => m.ArticleType)
                 .Include(m => m.ArticleImages)
-                .Include(m => m.ArticleLinkChildArticles)
-                .Include(m => m.ArticleLinkParentArticles)
                 .Include(m => m.ArticleTags)
                 .FirstOrDefault(a => a.Id == id);
 
@@ -89,19 +88,41 @@ namespace DungeonMastersArchive.Services
                 }
             }
 
-            if (dbArticle.ArticleLinkParentArticles != null && dbArticle.ArticleLinkParentArticles.Any())
+            var parentArticles = _context.ArticleLinks.Include(m => m.ParentArticle).Where(m => m.ChildArticleId == dbArticle.Id).ToList();
+            if (parentArticles != null && parentArticles.Any())
             {
-
+                model.ParentLinks = parentArticles
+                    .Select(m => new ArticleLink
+                    {
+                        Id = m.Id,
+                        ChildArticleId = m.ChildArticleId,
+                        ParentArticleId = m.ParentArticleId,
+                        ChildName = dbArticle.ArticleName,
+                        ParentName = m.ParentArticle.ArticleName
+                    }).ToList();
             }
 
-            if (dbArticle.ArticleLinkChildArticles != null && dbArticle.ArticleLinkChildArticles.Any())
+            var childArticles = _context.ArticleLinks.Include(m => m.ChildArticle).Where(m => m.ParentArticleId == dbArticle.Id).ToList();
+            if (childArticles != null && childArticles.Any())
             {
-
+                model.ChildLinks = childArticles
+                    .Select(m => new ArticleLink
+                    {
+                        Id = m.Id,
+                        ChildArticleId = m.ChildArticleId,
+                        ParentArticleId = m.ParentArticleId,
+                        ChildName = m.ChildArticle.ArticleName,
+                        ParentName = dbArticle.ArticleName
+                    }).ToList();
             }
 
             if (dbArticle.ArticleTags != null && dbArticle.ArticleTags.Any())
             {
-
+                model.Tags = new List<ArticleTag>();
+                foreach (var tag in dbArticle.ArticleTags)
+                {
+                    model.Tags.Add(new ArticleTag { Id = tag.Id, ArticleId = tag.ArticleId, Tag = tag.Tag });
+                }
             }
 
 
@@ -158,7 +179,12 @@ namespace DungeonMastersArchive.Services
             }
             else
             {
-                dbArticle = _context.Articles.First(m => m.Id == article.Id);
+                dbArticle = _context.Articles
+                    .Include(m => m.ArticleTags)
+                    .Include(m => m.ArticleImages)
+                    .Include(m => m.ArticleLinkChildArticles)
+                    .Include(m => m.ArticleLinkParentArticles)
+                    .First(m => m.Id == article.Id);
                 dbArticle.UpdateBy = user.Id;
                 dbArticle.UpdatedAt = DateTime.Now;
             }
@@ -177,7 +203,10 @@ namespace DungeonMastersArchive.Services
                 _context.Articles.Add(dbArticle);
             }
 
-            if (article.Images != null && article.Images.Any())
+            _context.SaveChanges();
+
+
+            if (article.Images != null)
             {
                 var currentIds = article.Images.Where(m => m.Id.HasValue).Select(m => m.Id.Value).ToList();
 
@@ -203,6 +232,33 @@ namespace DungeonMastersArchive.Services
                         Title = image.Title
                     });
                 }
+
+                _context.SaveChanges();
+            }
+
+            if (article.Tags != null)
+            {
+                _context.ArticleTags.RemoveRange(dbArticle.ArticleTags);
+                _context.SaveChanges();
+
+                dbArticle.ArticleTags = new List<DbModels.ArticleTag>();
+                foreach (var tag in article.Tags)
+                {
+                    dbArticle.ArticleTags.Add(new DbModels.ArticleTag { Tag = tag.Tag });
+                }
+            }
+
+            if (article.ChildLinks != null)
+            {
+                _context.ArticleLinks.RemoveRange(_context.ArticleLinks.Where(m => m.ParentArticleId == dbArticle.Id));
+                _context.SaveChanges();
+
+                var dbChilds = new List<DbModels.ArticleLink>();
+                foreach (var childLink in article.ChildLinks)
+                {
+                    dbChilds.Add(new DbModels.ArticleLink { ChildArticleId = childLink.ChildArticleId, ParentArticleId = dbArticle.Id });
+                }
+                _context.ArticleLinks.AddRange(dbChilds);
             }
 
             try
