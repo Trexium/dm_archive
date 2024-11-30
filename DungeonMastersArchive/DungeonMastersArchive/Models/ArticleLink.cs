@@ -2,10 +2,8 @@
 {
     public class ArticleLink
     {
-        public int? Id { get; set; }
-        public int ParentArticleId { get; set; }
-        public string ParentName { get; set; }
-        public int ChildArticleId { get; set; }
-        public string ChildName { get; set; }
+        public int ArticleId { get; set; }
+        public string ArticleName { get; set; }
+        public string GroupName { get; set; }
     }
 }

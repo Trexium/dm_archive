@@ -11,6 +11,8 @@ public partial class ArticleLink
 
     public int ChildArticleId { get; set; }
 
+    public string? GroupName { get; set; }
+
     public virtual Article ChildArticle { get; set; } = null!;
 
     public virtual Article ParentArticle { get; set; } = null!;

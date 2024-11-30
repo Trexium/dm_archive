@@ -23,5 +23,6 @@
         public List<ArticleLink> ParentLinks { get; set; }
         public List<ArticleLink> ChildLinks { get; set; }
         public List<ArticleTag> Tags { get; set; }
+
     }
 }

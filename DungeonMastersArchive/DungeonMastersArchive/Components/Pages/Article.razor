@@ -1,0 +1,93 @@
+﻿@page "/article/{id:int?}"
+@using DungeonMastersArchive.Services
+
+@inject IArticleService ArticleService
+@inject IUserService UserService
+@inject ImageService ImageService
+
+@if (_model == null)
+{
+
+}
+else
+{
+    // Karaktär
+    @if (_model.ArticleTypeId == "1" || _model.ArticleTypeId == "2" || _model.ArticleTypeId == "6")
+    {
+
+    }
+    else if (_model.ArticleTypeId == "4")
+    {
+
+    }
+    else
+    {
+        <MudStack Row="true">
+            <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
+                <MudStack>
+                    <h2>@_model.ArticleName</h2>
+                    @if (_model.Images != null && _model.Images.Any())
+                    {
+                        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model.Images" @bind-SelectedIndex="_carouselIndex" Style="height:200px;" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+                            <ItemTemplate>
+                                <div class="d-flex flex-column flex-column justify-center" style="height:100%">
+                                    <MudStack Class="pa-2 rounded">
+                                        <MudImage Class="pa-2 rounded-lg" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.Cover" Elevation="25" Alt="@context.Title" />
+                                        <MudText Class="pa-2" Align="@Align.Center">@ImageService.GetImageUrl(context)</MudText>
+                                        <MudText Class="pa-2" Align="@Align.Center">@context.Title</MudText>
+                                    </MudStack>
+                                </div>
+                            </ItemTemplate>
+                        </MudCarousel>
+                    }
+                    <h3>Beskrivning</h3>
+                    <MudText>
+                        @_model.ArticleText
+                    </MudText>
+                    @if (_model.ChildLinks != null && _model.ChildLinks.Any()){
+                        <h3>Relaterat - Underliggande</h3>
+                        @foreach(var link in _model.ChildLinks){
+                            <MudLink Href="@($"/article/{link.ArticleId}")">@link.ArticleName</MudLink>
+                        }
+                    }
+                    
+                    
+                </MudStack>
+            </MudPaper>
+            <MudPaper Class=" pa-6 ma-2" Elevation="3">
+                <MudButtonGroup Vertical="true">
+
+
+                </MudButtonGroup>
+            </MudPaper>
+        </MudStack>
+    }
+
+}
+
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Models.Article _model;
+    private Models.User _user;
+
+    private MudCarousel<Models.ArticleImageMetadata>? _carousel;
+
+    private int _carouselIndex;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _user = await UserService.GetCurrentUser();
+        _model = await ArticleService.GetArticle(Id);
+
+    }
+}

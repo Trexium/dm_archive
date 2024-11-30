@@ -94,11 +94,9 @@ namespace DungeonMastersArchive.Services
                 model.ParentLinks = parentArticles
                     .Select(m => new ArticleLink
                     {
-                        Id = m.Id,
-                        ChildArticleId = m.ChildArticleId,
-                        ParentArticleId = m.ParentArticleId,
-                        ChildName = dbArticle.ArticleName,
-                        ParentName = m.ParentArticle.ArticleName
+                        ArticleId = m.ParentArticleId,
+                        ArticleName = m.ParentArticle.ArticleName,
+                        GroupName = m.GroupName
                     }).ToList();
             }
 
@@ -108,11 +106,9 @@ namespace DungeonMastersArchive.Services
                 model.ChildLinks = childArticles
                     .Select(m => new ArticleLink
                     {
-                        Id = m.Id,
-                        ChildArticleId = m.ChildArticleId,
-                        ParentArticleId = m.ParentArticleId,
-                        ChildName = m.ChildArticle.ArticleName,
-                        ParentName = dbArticle.ArticleName
+                        ArticleId = m.ChildArticleId,
+                        ArticleName = m.ChildArticle.ArticleName,
+                        GroupName = m.GroupName
                     }).ToList();
             }
 
@@ -256,7 +252,7 @@ namespace DungeonMastersArchive.Services
                 var dbChilds = new List<DbModels.ArticleLink>();
                 foreach (var childLink in article.ChildLinks)
                 {
-                    dbChilds.Add(new DbModels.ArticleLink { ChildArticleId = childLink.ChildArticleId, ParentArticleId = dbArticle.Id });
+                    dbChilds.Add(new DbModels.ArticleLink { ChildArticleId = childLink.ArticleId, ParentArticleId = dbArticle.Id, GroupName = childLink.GroupName });
                 }
                 _context.ArticleLinks.AddRange(dbChilds);
             }

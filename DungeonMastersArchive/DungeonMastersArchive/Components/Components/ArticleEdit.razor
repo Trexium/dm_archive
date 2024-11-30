@@ -49,17 +49,6 @@
                         <br />
                         @if (_model.Images != null && _model.Images.Any())
                         {
-                            @* <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model.Images" @bind-SelectedIndex="_carouselIndex" Style="height:200px;" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
-                        <ItemTemplate>
-                            <div class="d-flex flex-column flex-column justify-center" style="height:100%">
-                                <MudStack Class="pa-2 rounded">
-                                    <MudImage Class="pa-2 rounded-lg" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.Cover" Elevation="25" Alt="@context.Title" />
-                                    <MudText Class="pa-2" Align="@Align.Center">@ImageService.GetImageUrl(context)</MudText>
-                                    <MudText Class="pa-2" Align="@Align.Center">@context.Title</MudText>
-                                </MudStack>
-                            </div>
-                        </ItemTemplate>
-                    </MudCarousel> *@
                             <MudTable T="Models.ArticleImageMetadata" Items="_model.Images">
                                 <HeaderContent>
                                     <MudTh>Bild</MudTh>
@@ -120,30 +109,35 @@
                         </MudStack>
                     </MudTabPanel>
                     <MudTabPanel Text="Länkar" Icon="@Icons.Material.Filled.Link">
-
                         <br />
                         @if (_model.ChildLinks != null)
                         {
                             <MudTable T="Models.ArticleLink" Items="_model.ChildLinks" Dense="true">
                                 <HeaderContent>
                                     <MudTh>Artikel</MudTh>
+                                    <MudTh>Gruppering</MudTh>
                                     <MudTh>Åtgärder</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
-                                    <MudTd DataLabel="Artikel"><MudLink Href="@($"/edit-article/{context.ChildArticleId.ToString()}")" Target="_blank">@context.ChildName</MudLink></MudTd>
+                                    <MudTd DataLabel="Artikel"><MudLink Href="@($"/edit-article/{context.ArticleId.ToString()}")" Target="_blank">@context.ArticleName</MudLink></MudTd>
+                                    <MudTd DataLabel="Gruppering">@context.GroupName</MudTd>
                                     <MudTd DataLabel="Åtgärd"><MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteLink(context)"></MudIconButton></MudTd>
                                 </RowTemplate>
                             </MudTable>
                         }
                         <br />
-                        <MudAutocomplete @ref="_linkAutoComplete" T="Models.ValueStoreItem<int, string>" Label="Välj artikel att länka till" SearchFunc="SearchArticleValueStore" ToStringFunc="@(e=> e==null?null : $"{e.Value}")" ShowProgressIndicator="true" Clearable="true" ValueChanged="AddChildLink">
-                            <BeforeItemsTemplate>
+                        <MudStack Row="true">
+                            <MudAutocomplete @ref="_linkAutoComplete" T="Models.ValueStoreItem<int, string>" Label="Välj artikel att länka till" SearchFunc="SearchArticleValueStore" ToStringFunc="@(e=> e==null?null : $"{e.Value}")" ShowProgressIndicator="true" Clearable="true" ValueChanged="LinkAutoCompleteValueChanged">
+                                <BeforeItemsTemplate>
 
-                            </BeforeItemsTemplate>
-                            <NoItemsTemplate>
-                                <MudText Align="Align.Center">Inga artiklar hittades.</MudText>
-                            </NoItemsTemplate>
-                        </MudAutocomplete>
+                                </BeforeItemsTemplate>
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center">Inga artiklar hittades.</MudText>
+                                </NoItemsTemplate>
+                            </MudAutocomplete>
+                            <MudTextField Label="Gruppering" @bind-Value="_linkGroupName" />
+                            <MudIconButton Icon="@Icons.Material.Filled.AddLink" OnClick="() => AddChildLink()" Disabled="@_addLinkButtonDisabled">Lägg till</MudIconButton>
+                        </MudStack>
                     </MudTabPanel>
                     <MudTabPanel Text="Taggar" Icon="@Icons.Material.Filled.Tag">
                         <br />
@@ -221,7 +215,6 @@
 
     private MudForm _form;
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
-    private MudCarousel<Models.ArticleImageMetadata>? _carousel;
     private MudAutocomplete<Models.ValueStoreItem<int, string>> _linkAutoComplete;
     private MudAutocomplete<Models.ValueStoreItem<int, string>> _tagAutoComplete;
 
@@ -230,7 +223,11 @@
     private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
     private string _dragClass = DefaultDragClass;
     private readonly List<IBrowserFile> _files = new();
-    private int _carouselIndex;
+    private string _linkGroupName = string.Empty;
+    private bool _addLinkButtonDisabled = true;
+
+
+
 
 
     protected override async Task OnInitializedAsync()
@@ -332,12 +329,13 @@
     {
         IEnumerable<Models.ValueStoreItem<int, string>> hits = _articleValueStore;
 
-        if (_model.Id.HasValue){
+        if (_model.Id.HasValue)
+        {
             hits = hits.Where(m => m.Key != _model.Id);
         }
         if (_model.ChildLinks != null)
         {
-            hits = hits.Where(m => !_model.ChildLinks.Select(m => m.ChildArticleId).Contains(m.Key));
+            hits = hits.Where(m => !_model.ChildLinks.Select(m => m.ArticleId).Contains(m.Key));
         }
 
         if (string.IsNullOrEmpty(value))
@@ -352,13 +350,19 @@
         return hits;
     }
 
-    private async Task AddChildLink(Models.ValueStoreItem<int, string> value)
+    private async Task LinkAutoCompleteValueChanged()
     {
+        _addLinkButtonDisabled = _linkAutoComplete.Value == null;
+    }
+
+    private async Task AddChildLink()
+    {
+        var value = _linkAutoComplete.Value;
         if (_model.ChildLinks == null)
         {
             _model.ChildLinks = new List<Models.ArticleLink>();
         }
-        _model.ChildLinks.Add(new Models.ArticleLink{ ChildArticleId = value.Key, ChildName = value.Value});
+        _model.ChildLinks.Add(new Models.ArticleLink { ArticleId = value.Key, ArticleName = value.Value, GroupName = _linkGroupName });
         await _linkAutoComplete.ResetAsync();
     }
 

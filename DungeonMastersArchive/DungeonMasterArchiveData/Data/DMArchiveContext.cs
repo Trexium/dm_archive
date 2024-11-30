@@ -142,6 +142,8 @@ public partial class DMArchiveContext : DbContext
 
             entity.ToTable("ArticleLink");
 
+            entity.Property(e => e.GroupName).HasMaxLength(255);
+
             entity.HasOne(d => d.ChildArticle).WithMany(p => p.ArticleLinkChildArticles)
                 .HasForeignKey(d => d.ChildArticleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

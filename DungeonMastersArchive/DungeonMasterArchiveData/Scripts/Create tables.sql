@@ -78,7 +78,8 @@ create table ArticleLink
 (
 	Id int identity(1, 1) primary key,
 	ParentArticleId int not null foreign key references Article(Id),
-	ChildArticleId int not null foreign key references Article(Id)
+	ChildArticleId int not null foreign key references Article(Id),
+	Title nvarchar(255)
 )
 
 create table ArticleTag
