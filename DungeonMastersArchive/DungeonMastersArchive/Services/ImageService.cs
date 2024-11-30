@@ -1,4 +1,4 @@
-﻿using DungeonMastersArchive.Models;
+﻿using DungeonMastersArchive.Models.Article;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace DungeonMastersArchive.Services

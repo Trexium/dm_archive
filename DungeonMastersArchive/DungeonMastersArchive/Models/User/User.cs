@@ -1,4 +1,4 @@
-﻿namespace DungeonMastersArchive.Models
+﻿namespace DungeonMastersArchive.Models.User
 {
     public class User
     {

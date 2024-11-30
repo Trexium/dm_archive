@@ -1,5 +1,5 @@
 ﻿using DungeonMasterArchiveData.Data;
-using DungeonMastersArchive.Models;
+using DungeonMastersArchive.Models.User;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using DataModels = DungeonMasterArchiveData.Models;

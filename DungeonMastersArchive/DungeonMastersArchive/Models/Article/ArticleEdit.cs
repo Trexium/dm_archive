@@ -1,6 +1,6 @@
-﻿namespace DungeonMastersArchive.Models
+﻿namespace DungeonMastersArchive.Models.Article
 {
-    public class Article
+    public class ArticleEdit
     {
         public int? Id { get; set; }
         public DateTime? CreatedAt { get; set; }
@@ -23,29 +23,5 @@
         public List<ArticleLink> ParentLinks { get; set; }
         public List<ArticleLink> ChildLinks { get; set; }
         public List<ArticleTag> Tags { get; set; }
-        public List<ArticleLink> Links
-        {
-            get 
-            { 
-                var links = new List<ArticleLink>();
-                if (ChildLinks != null)
-                {
-                    links.AddRange(ChildLinks);
-                }
-                if (ParentLinks != null)
-                {
-                    links.AddRange(ParentLinks);
-                }
-
-                if (links.Any())
-                {
-                    return links;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
     }
 }

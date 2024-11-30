@@ -1,4 +1,5 @@
 ﻿@page "/article/{id:int?}"
+@using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
 
 @inject IArticleService ArticleService
@@ -12,7 +13,7 @@
 else
 {
     // Karaktär
-    @if (false && _model.ArticleTypeId == "1" || _model.ArticleTypeId == "2" || _model.ArticleTypeId == "6")
+@*     @if (false && _model.ArticleTypeId == "1" || _model.ArticleTypeId == "2" || _model.ArticleTypeId == "6")
     {
 
     }
@@ -21,12 +22,12 @@ else
 
     }
     else
-    {
+    { *@
         <MudStack Row="true">
             <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
                 <MudStack>
                     <h2>@_model.ArticleName</h2>
-                    @if (_model.Images != null && _model.Images.Any())
+  @*                   @if (_model.Images != null && _model.Images.Any())
                     {
                         <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model.Images" @bind-SelectedIndex="_carouselIndex" Style="height:200px;" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
                             <ItemTemplate>
@@ -39,22 +40,12 @@ else
                                 </div>
                             </ItemTemplate>
                         </MudCarousel>
-                    }
+                    } *@
                     <h3>Beskrivning</h3>
                     <MudText>
                         @_model.ArticleText
                     </MudText>
-                    @if (_groupedArticleLinks != null)
-                    {
-                        <h3>Relaterat - Underliggande</h3>
-                        @foreach (var linkGroup in _groupedArticleLinks.Keys)
-                        {
-                            <h4>@linkGroup</h4>
-                            @foreach(var link in _groupedArticleLinks[linkGroup]){
-                                <MudLink Href="@($"/article/{link.ArticleId}")">@link.ArticleName</MudLink>
-                            }
-                        }
-                    }
+                    <DungeonMastersArchive.Components.Components.LinksSection ArticleId="@Id" />
 
 
                 </MudStack>
@@ -66,7 +57,7 @@ else
                 </MudButtonGroup>
             </MudPaper>
         </MudStack>
-    }
+    @* } *@
 
 }
 
@@ -76,13 +67,12 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private Models.Article _model;
-    private Models.User _user;
+    private Models.Article.Article _model;
+    private Models.User.User _user;
 
-    private MudCarousel<Models.ArticleImageMetadata>? _carousel;
+    private MudCarousel<ArticleImageMetadata>? _carousel;
 
     private int _carouselIndex;
-    private Dictionary<string, List<Models.ArticleLink>> _groupedArticleLinks;
 
 
     protected override async Task OnInitializedAsync()
@@ -94,17 +84,5 @@ else
     {
         _user = await UserService.GetCurrentUser();
         _model = await ArticleService.GetArticle(Id);
-
-        if (_model.Links != null && _model.Links.Any())
-        {
-            _groupedArticleLinks = new Dictionary<string, List<Models.ArticleLink>>();
-            var linksWithGroup = _model.Links.Where(m => !string.IsNullOrEmpty(m.GroupName));
-            var linksWithoutGroup = _model.Links.Where(m => string.IsNullOrEmpty(m.GroupName) && !linksWithGroup.Select(m2 => m2.ArticleId).Contains(m.ArticleId));
-
-            var links = linksWithGroup.Select(m => new { Key = m.GroupName, Value = m }).ToList();
-            links.AddRange(linksWithoutGroup.Select(m => new { Key = m.ArticleType, Value = m }));
-
-            _groupedArticleLinks = links.GroupBy(m => m.Key).ToDictionary(k => k.Key, v => v.Select(m => m.Value).ToList());
-        }
     }
 }

@@ -6,16 +6,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Humanizer;
 using System.Diagnostics.CodeAnalysis;
+using DungeonMastersArchive.Models.Article;
 
 namespace DungeonMastersArchive.Services
 {
     public interface IArticleService
     {
-        Task<Models.Article> GetArticle(int id);
-        Task<Models.Article> SaveArticle(Models.Article article);
-        Task<List<Models.Article>> GetArticles();
+        Task<ArticleEdit> GetArticleEdit(int id);
+        Task<Article> GetArticle(int id);
+        Task<ArticleEdit> SaveArticle(ArticleEdit article);
+        Task<List<ArticleMini>> GetArticles();
         Task<bool> DeleteArticle(int id);
         Task RemoveImageFromArticle(int imageId);
+        Task<Dictionary<string, List<ArticleLink>>> GetArticleLinks(int articleId);
     }
     public class ArticleService : IArticleService
     {
@@ -26,6 +29,79 @@ namespace DungeonMastersArchive.Services
         {
             _context = context;
             _userService = userService;
+        }
+
+        public async Task<Dictionary<string, List<ArticleLink>>> GetArticleLinks(int articleId)
+        {
+            var dbChildLinks = _context.ArticleLinks.Include(m => m.ChildArticle).ThenInclude(m => m.ArticleType).Where(m => m.ParentArticleId == articleId);
+            var dbParentLinks = _context.ArticleLinks.Include(m => m.ParentArticle).ThenInclude(m => m.ArticleType).Where(m => m.ChildArticleId == articleId);
+
+            var linkList = new List<ArticleLink>();
+
+            foreach (var dbLink in dbChildLinks)
+            {
+                linkList.Add(new ArticleLink
+                {
+                    ArticleId = dbLink.ChildArticleId,
+                    ArticleName = dbLink.ChildArticle.ArticleName,
+                    ArticleType = dbLink.ChildArticle.ArticleType.DisplayText,
+                    GroupName = dbLink.GroupName
+                });
+            }
+            foreach (var dbLink in dbParentLinks)
+            {
+                linkList.Add(new ArticleLink
+                {
+                    ArticleId = dbLink.ParentArticleId,
+                    ArticleName = dbLink.ParentArticle.ArticleName,
+                    ArticleType = dbLink.ParentArticle.ArticleType.DisplayText,
+                    GroupName = dbLink.GroupName
+                });
+            }
+
+            var linksWithGroup = linkList.Where(m => !string.IsNullOrEmpty(m.GroupName));
+            var linksWithoutGroup = linkList.Where(m => string.IsNullOrEmpty(m.GroupName) && !linksWithGroup.Select(m2 => m2.ArticleId).Contains(m.ArticleId));
+
+            var links = linksWithGroup.Select(m => new { Key = m.GroupName, Value = m }).ToList();
+            links.AddRange(linksWithoutGroup.Select(m => new { Key = m.ArticleType, Value = m }));
+
+            var resultDict = links.GroupBy(m => m.Key).ToDictionary(k => k.Key, v => v.Select(m => m.Value).ToList());
+            if (resultDict != null && resultDict.Any())
+            {
+                return resultDict;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<Article> GetArticle(int id)
+        {
+            var dbArticle = _context.Articles
+                .Include(m => m.ArticleType)
+                .Include(m => m.ArticleImages)
+                .Include(m => m.ArticleTags)
+                .FirstOrDefault(a => a.Id == id);
+
+            if (dbArticle == null)
+            {
+                return null;
+            }
+
+
+            var model = new Models.Article.Article();
+            model.Id = dbArticle.Id;
+            model.ArticleName = dbArticle.ArticleName;
+            model.ArticleText = dbArticle.ArticleText;
+            model.ArticleTypeDisplayText = dbArticle.ArticleType.DisplayText;
+            model.ArticleTypeId = dbArticle.ArticleTypeId.ToString();
+            model.UpdatedAt = dbArticle.UpdatedAt;
+            model.UpdatedBy = dbArticle.UpdateBy;
+            model.CreatedAt = dbArticle.CreatedAt.Value;
+            model.CreatedBy = dbArticle.CreatedBy;
+
+            return model;
         }
 
         public async Task<bool> DeleteArticle(int id)
@@ -43,7 +119,7 @@ namespace DungeonMastersArchive.Services
             }
         }
 
-        public async Task<Models.Article> GetArticle(int id)
+        public async Task<ArticleEdit> GetArticleEdit(int id)
         {
             var dbArticle = _context.Articles
                 .Include(m => m.ArticleType)
@@ -57,7 +133,7 @@ namespace DungeonMastersArchive.Services
             }
 
 
-            var model = new Models.Article();
+            var model = new Models.Article.ArticleEdit();
             model.Id = dbArticle.Id;
             model.ArticleName = dbArticle.ArticleName;
             model.ArticleText = dbArticle.ArticleText;
@@ -127,26 +203,18 @@ namespace DungeonMastersArchive.Services
             return model;
         }
 
-        public async Task<List<Models.Article>> GetArticles()
+        public async Task<List<ArticleMini>> GetArticles()
         {
             var user = await _userService.GetCurrentUser();
             var dbArticles = _context.Articles.Include(m => m.ArticleType).Where(m => m.CampaignId == user.CurrentCampaignId && !m.IsDeleted).ToList();
-            var articles = new List<Models.Article>();
+            var articles = new List<ArticleMini>();
             foreach (var dbArticle in dbArticles)
             {
-                articles.Add(new Article
+                articles.Add(new ArticleMini
                 {
                     Id = dbArticle.Id,
                     ArticleName = dbArticle.ArticleName,
-                    ArticleText = dbArticle.ArticleText,
-                    ArticleTypeDisplayText = dbArticle.ArticleType.DisplayText,
-                    ArticleTypeId = dbArticle.ArticleTypeId.ToString(),
-                    UpdatedAt = dbArticle.UpdatedAt,
-                    UpdatedBy = dbArticle.UpdateBy,
-                    CampaignId = dbArticle.CampaignId,
-                    CreatedAt = dbArticle.CreatedAt,
-                    CreatedBy = dbArticle.CreatedBy,
-                    IsDeleted = dbArticle.IsDeleted,
+                    ArticleType = dbArticle.ArticleType.DisplayText,
                     IsPublished = dbArticle.IsPublished,
                 });
             }
@@ -164,7 +232,7 @@ namespace DungeonMastersArchive.Services
             }
         }
 
-        public async Task<Models.Article> SaveArticle(Article article)
+        public async Task<ArticleEdit> SaveArticle(ArticleEdit article)
         {
             var user = await _userService.GetCurrentUser();
 
@@ -262,7 +330,7 @@ namespace DungeonMastersArchive.Services
             try
             {
                 await _context.SaveChangesAsync();
-                return await GetArticle(dbArticle.Id);
+                return await GetArticleEdit(dbArticle.Id);
             }
             catch (Exception ex)
             {

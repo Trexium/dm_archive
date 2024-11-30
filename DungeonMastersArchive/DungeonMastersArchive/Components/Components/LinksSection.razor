@@ -1,0 +1,40 @@
+﻿@using DungeonMastersArchive.Models.Article
+@using DungeonMastersArchive.Services
+
+@inject IArticleService ArticleService
+@inject IUserService UserService
+
+<MudStack>
+    @if (_model != null)
+    {
+        <h3>Relaterat - Underliggande</h3>
+        @foreach (var linkGroup in _model.Keys)
+        {
+            <h4>@linkGroup</h4>
+            @foreach (var link in _model[linkGroup])
+            {
+                <MudLink Href="@($"/article/{link.ArticleId}")">@link.ArticleName</MudLink>
+            }
+        }
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public int ArticleId { get; set; }
+
+    private Models.User.User _user;
+    private List<ArticleLink> _allLinks;
+    private Dictionary<string, List<ArticleLink>> _model;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _user = await UserService.GetCurrentUser();
+        _model = await ArticleService.GetArticleLinks(ArticleId);
+    }
+}

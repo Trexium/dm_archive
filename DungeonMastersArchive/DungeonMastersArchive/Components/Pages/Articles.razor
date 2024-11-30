@@ -1,5 +1,5 @@
 ﻿@page "/articles"
-@using DungeonMastersArchive.Models;
+@using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
 
 @inject IArticleService ArticleService
@@ -10,7 +10,7 @@
 
 <div class="d-flex flex-row">
     <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
-        <MudTable T="Models.Article" Items="@_articles">
+        <MudTable T="ArticleMini" Items="@_articles">
             <HeaderContent>
                 <MudTh>Artikel</MudTh>
                 <MudTh>Typ</MudTh>
@@ -19,7 +19,7 @@
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Artikel">@context.ArticleName</MudTd>
-                <MudTd DataLabel="Typ">@context.ArticleTypeDisplayText</MudTd>
+                <MudTd DataLabel="Typ">@context.ArticleType</MudTd>
                 <MudTd DataLabel="Publicerad?">
                     @if (context.IsPublished)
                     {
@@ -31,8 +31,8 @@
                     }
                 </MudTd>
                 <MudTd DataLabel="Åtgärder">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@GetEditLink(context.Id.Value)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteArticle(context.Id.Value)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@GetEditLink(context.Id)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteArticle(context.Id)" />
                 </MudTd>
             </RowTemplate>
             <PagerContent>
@@ -56,7 +56,7 @@
 
 
 @code {
-    private List<Models.Article> _articles;
+    private List<ArticleMini> _articles;
 
     private string GetEditLink(int id){
         return $"/edit-article/{id}";

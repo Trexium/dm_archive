@@ -1,4 +1,4 @@
-﻿namespace DungeonMastersArchive.Models
+﻿namespace DungeonMastersArchive.Models.Article
 {
     public class ArticleImageMetadata
     {

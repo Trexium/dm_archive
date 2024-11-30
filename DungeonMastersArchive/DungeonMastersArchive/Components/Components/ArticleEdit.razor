@@ -1,4 +1,5 @@
 ﻿@using DungeonMastersArchive.Components.Components
+@using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
 
 @inject ISnackbar Snackbar
@@ -49,7 +50,7 @@
                         <br />
                         @if (_model.Images != null && _model.Images.Any())
                         {
-                            <MudTable T="Models.ArticleImageMetadata" Items="_model.Images">
+                            <MudTable T="ArticleImageMetadata" Items="_model.Images">
                                 <HeaderContent>
                                     <MudTh>Bild</MudTh>
                                     <MudTh>Titel</MudTh>
@@ -112,7 +113,7 @@
                         <br />
                         @if (_model.ChildLinks != null)
                         {
-                            <MudTable T="Models.ArticleLink" Items="_model.ChildLinks" Dense="true">
+                            <MudTable T="ArticleLink" Items="_model.ChildLinks" Dense="true">
                                 <HeaderContent>
                                     <MudTh>Artikel</MudTh>
                                     <MudTh>Gruppering</MudTh>
@@ -143,7 +144,7 @@
                         <br />
                         @if (_model.Tags != null)
                         {
-                            <MudTable T="Models.ArticleTag" Items="_model.Tags" Dense="true">
+                            <MudTable T="ArticleTag" Items="_model.Tags" Dense="true">
                                 <HeaderContent>
                                     <MudTh>Tag</MudTh>
                                     <MudTh>Åtgärder</MudTh>
@@ -206,7 +207,7 @@
     [Parameter]
     public int? ArticleTypeId { get; set; }
 
-    private Models.Article _model;
+    private Models.Article.ArticleEdit _model;
 
     private List<Models.ValueStoreItem<int, string>> _articleTypes;
     private List<Models.ValueStoreItem<int, string>> _months;
@@ -243,11 +244,11 @@
     {
         if (Id.HasValue)
         {
-            _model = await ArticleService.GetArticle(Id.Value);
+            _model = await ArticleService.GetArticleEdit(Id.Value);
         }
         else
         {
-            _model = new Models.Article
+            _model = new Models.Article.ArticleEdit
             {
 
             };
@@ -272,14 +273,14 @@
         {
             if (_files.Any())
             {
-                var articleImages = new List<Models.ArticleImageMetadata>();
+                var articleImages = new List<ArticleImageMetadata>();
                 foreach (var file in _files)
                 {
                     articleImages.Add(await ImageService.UploadFile(file, 2));
                 }
                 if (_model.Images == null)
                 {
-                    _model.Images = new List<Models.ArticleImageMetadata>();
+                    _model.Images = new List<ArticleImageMetadata>();
                 }
                 _model.Images.AddRange(articleImages);
             }
@@ -320,7 +321,7 @@
     private void ClearDragClass()
         => _dragClass = DefaultDragClass;
 
-    private async Task DeleteImage(Models.ArticleImageMetadata image)
+    private async Task DeleteImage(ArticleImageMetadata image)
     {
         _model.Images.Remove(image);
     }
@@ -360,13 +361,13 @@
         var value = _linkAutoComplete.Value;
         if (_model.ChildLinks == null)
         {
-            _model.ChildLinks = new List<Models.ArticleLink>();
+            _model.ChildLinks = new List<ArticleLink>();
         }
-        _model.ChildLinks.Add(new Models.ArticleLink { ArticleId = value.Key, ArticleName = value.Value, GroupName = _linkGroupName });
+        _model.ChildLinks.Add(new ArticleLink { ArticleId = value.Key, ArticleName = value.Value, GroupName = _linkGroupName });
         await _linkAutoComplete.ResetAsync();
     }
 
-    private async Task DeleteLink(Models.ArticleLink link)
+    private async Task DeleteLink(ArticleLink link)
     {
         _model.ChildLinks.Remove(link);
     }
@@ -397,9 +398,9 @@
     {
         if (_model.Tags == null)
         {
-            _model.Tags = new List<Models.ArticleTag>();
+            _model.Tags = new List<ArticleTag>();
         }
-        _model.Tags.Add(new Models.ArticleTag { Id = value.Key, Tag = value.Value });
+        _model.Tags.Add(new ArticleTag { Id = value.Key, Tag = value.Value });
         await _tagAutoComplete.ResetAsync();
         Snackbar.Add($"Tag \"{value.Value}\" tillagd.", Severity.Info);
     }
@@ -408,7 +409,7 @@
     {
         if (_model.Tags == null)
         {
-            _model.Tags = new List<Models.ArticleTag>();
+            _model.Tags = new List<ArticleTag>();
         }
 
         if (_model.Tags.Select(m => m.Tag).Contains(text))
@@ -424,14 +425,14 @@
             }
             else
             {
-                _model.Tags.Add(new Models.ArticleTag { Tag = text });
+                _model.Tags.Add(new ArticleTag { Tag = text });
                 Snackbar.Add($"Tag \"{text}\" tillagd.", Severity.Info);
                 await _tagAutoComplete.ResetAsync();
             }
         }
     }
 
-    private async Task DeleteTag(Models.ArticleTag tag)
+    private async Task DeleteTag(ArticleTag tag)
     {
         _model.Tags.Remove(tag);
         Snackbar.Add($"Tag \"{tag.Tag}\" borttagen.", Severity.Info);
