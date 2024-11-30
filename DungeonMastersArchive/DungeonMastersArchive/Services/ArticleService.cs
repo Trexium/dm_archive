@@ -88,7 +88,7 @@ namespace DungeonMastersArchive.Services
                 }
             }
 
-            var parentArticles = _context.ArticleLinks.Include(m => m.ParentArticle).Where(m => m.ChildArticleId == dbArticle.Id).ToList();
+            var parentArticles = _context.ArticleLinks.Include(m => m.ParentArticle).ThenInclude(m => m.ArticleType).Where(m => m.ChildArticleId == dbArticle.Id).ToList();
             if (parentArticles != null && parentArticles.Any())
             {
                 model.ParentLinks = parentArticles
@@ -96,11 +96,12 @@ namespace DungeonMastersArchive.Services
                     {
                         ArticleId = m.ParentArticleId,
                         ArticleName = m.ParentArticle.ArticleName,
-                        GroupName = m.GroupName
+                        GroupName = m.GroupName,
+                        ArticleType = m.ParentArticle.ArticleType.DisplayText
                     }).ToList();
             }
 
-            var childArticles = _context.ArticleLinks.Include(m => m.ChildArticle).Where(m => m.ParentArticleId == dbArticle.Id).ToList();
+            var childArticles = _context.ArticleLinks.Include(m => m.ChildArticle).ThenInclude(m => m.ArticleType).Where(m => m.ParentArticleId == dbArticle.Id).ToList();
             if (childArticles != null && childArticles.Any())
             {
                 model.ChildLinks = childArticles
@@ -108,7 +109,8 @@ namespace DungeonMastersArchive.Services
                     {
                         ArticleId = m.ChildArticleId,
                         ArticleName = m.ChildArticle.ArticleName,
-                        GroupName = m.GroupName
+                        GroupName = m.GroupName,
+                        ArticleType = m.ChildArticle.ArticleType.DisplayText
                     }).ToList();
             }
 

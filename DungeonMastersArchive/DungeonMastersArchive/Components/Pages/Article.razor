@@ -12,11 +12,11 @@
 else
 {
     // Karaktär
-    @if (_model.ArticleTypeId == "1" || _model.ArticleTypeId == "2" || _model.ArticleTypeId == "6")
+    @if (false && _model.ArticleTypeId == "1" || _model.ArticleTypeId == "2" || _model.ArticleTypeId == "6")
     {
 
     }
-    else if (_model.ArticleTypeId == "4")
+    else if (false && _model.ArticleTypeId == "4")
     {
 
     }
@@ -44,14 +44,19 @@ else
                     <MudText>
                         @_model.ArticleText
                     </MudText>
-                    @if (_model.ChildLinks != null && _model.ChildLinks.Any()){
+                    @if (_groupedArticleLinks != null)
+                    {
                         <h3>Relaterat - Underliggande</h3>
-                        @foreach(var link in _model.ChildLinks){
-                            <MudLink Href="@($"/article/{link.ArticleId}")">@link.ArticleName</MudLink>
+                        @foreach (var linkGroup in _groupedArticleLinks.Keys)
+                        {
+                            <h4>@linkGroup</h4>
+                            @foreach(var link in _groupedArticleLinks[linkGroup]){
+                                <MudLink Href="@($"/article/{link.ArticleId}")">@link.ArticleName</MudLink>
+                            }
                         }
                     }
-                    
-                    
+
+
                 </MudStack>
             </MudPaper>
             <MudPaper Class=" pa-6 ma-2" Elevation="3">
@@ -77,6 +82,7 @@ else
     private MudCarousel<Models.ArticleImageMetadata>? _carousel;
 
     private int _carouselIndex;
+    private Dictionary<string, List<Models.ArticleLink>> _groupedArticleLinks;
 
 
     protected override async Task OnInitializedAsync()
@@ -89,5 +95,16 @@ else
         _user = await UserService.GetCurrentUser();
         _model = await ArticleService.GetArticle(Id);
 
+        if (_model.Links != null && _model.Links.Any())
+        {
+            _groupedArticleLinks = new Dictionary<string, List<Models.ArticleLink>>();
+            var linksWithGroup = _model.Links.Where(m => !string.IsNullOrEmpty(m.GroupName));
+            var linksWithoutGroup = _model.Links.Where(m => string.IsNullOrEmpty(m.GroupName) && !linksWithGroup.Select(m2 => m2.ArticleId).Contains(m.ArticleId));
+
+            var links = linksWithGroup.Select(m => new { Key = m.GroupName, Value = m }).ToList();
+            links.AddRange(linksWithoutGroup.Select(m => new { Key = m.ArticleType, Value = m }));
+
+            _groupedArticleLinks = links.GroupBy(m => m.Key).ToDictionary(k => k.Key, v => v.Select(m => m.Value).ToList());
+        }
     }
 }

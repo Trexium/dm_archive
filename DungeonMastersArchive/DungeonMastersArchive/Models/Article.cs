@@ -23,6 +23,29 @@
         public List<ArticleLink> ParentLinks { get; set; }
         public List<ArticleLink> ChildLinks { get; set; }
         public List<ArticleTag> Tags { get; set; }
+        public List<ArticleLink> Links
+        {
+            get 
+            { 
+                var links = new List<ArticleLink>();
+                if (ChildLinks != null)
+                {
+                    links.AddRange(ChildLinks);
+                }
+                if (ParentLinks != null)
+                {
+                    links.AddRange(ParentLinks);
+                }
 
+                if (links.Any())
+                {
+                    return links;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
     }
 }
