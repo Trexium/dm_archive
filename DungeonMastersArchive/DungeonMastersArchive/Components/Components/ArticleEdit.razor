@@ -130,7 +130,7 @@
                                     <MudTh>Åtgärder</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
-                                    <MudTd DataLabel="Artikel">@context.ChildName</MudTd>
+                                    <MudTd DataLabel="Artikel"><MudLink Href="@($"/edit-article/{context.ChildArticleId.ToString()}")" Target="_blank">@context.ChildName</MudLink></MudTd>
                                     <MudTd DataLabel="Åtgärd"><MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteLink(context)"></MudIconButton></MudTd>
                                 </RowTemplate>
                             </MudTable>
