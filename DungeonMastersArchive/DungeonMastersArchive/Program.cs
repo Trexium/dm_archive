@@ -61,6 +61,7 @@ builder.Services.AddScoped<IValueStoreService, ValueStoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddSingleton<IImageService, ImageService>();
+builder.Services.AddScoped<IDateService, DateService>();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 

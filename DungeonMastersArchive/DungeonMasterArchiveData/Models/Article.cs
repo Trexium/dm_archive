@@ -19,7 +19,7 @@ public partial class Article
 
     public bool IsPublished { get; set; }
 
-    public string ArticleName { get; set; } = null!;
+    public string? ArticleName { get; set; }
 
     public int CampaignId { get; set; }
 

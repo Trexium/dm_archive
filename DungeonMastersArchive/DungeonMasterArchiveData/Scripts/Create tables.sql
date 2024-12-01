@@ -55,7 +55,6 @@ create table ArticleType
 )
 
 
-
 create table Article
 (
 	Id int identity(1, 1) primary key,
@@ -65,7 +64,7 @@ create table Article
 	UpdateBy int foreign key references ArchiveUser(Id),
 	IsDeleted bit not null default 0,
 	IsPublished bit not null default 0,
-	ArticleName nvarchar(255) not null,
+	ArticleName nvarchar(255) null,
 	CampaignId int not null foreign key references Campaign(Id),
 	ArticleTypeId int not null foreign key references ArticleType(Id),
 	ArticleText nvarchar(max),
@@ -79,7 +78,7 @@ create table ArticleLink
 	Id int identity(1, 1) primary key,
 	ParentArticleId int not null foreign key references Article(Id),
 	ChildArticleId int not null foreign key references Article(Id),
-	Title nvarchar(255)
+	GroupName nvarchar(255)
 )
 
 create table ArticleTag
@@ -93,10 +92,11 @@ create table ArticleImage
 (
 	Id int identity(1, 1) primary key,
 	CreatedAt datetime default getdate(),
-	ArticleId int not null foreign key references Article(Id),
-	CampaignId int not null foreign key references Campaign(Id),
+	CreatedBy int not null foreign key references ArchiveUser(Id),
+	ArticleId int null foreign key references Article(Id),
+	CampaignId int null foreign key references Campaign(Id),
 	Title nvarchar(255),
-	ImageUrl nvarchar(512)
+	[FileName] nvarchar(512)
 )
 
 

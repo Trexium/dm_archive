@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Humanizer;
 using System.Diagnostics.CodeAnalysis;
 using DungeonMastersArchive.Models.Article;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace DungeonMastersArchive.Services
 {
@@ -20,16 +21,50 @@ namespace DungeonMastersArchive.Services
         Task RemoveImageFromArticle(int imageId);
         Task<Dictionary<string, List<ArticleLink>>> GetArticleLinks(int articleId);
         Task<List<ArticleImageMetadata>> GetArticleImages(int articleId);
+        Task<List<TimelineArticle>> GetTimeline(int campaignId);
     }
     public class ArticleService : IArticleService
     {
         private readonly DMArchiveContext _context;
         private readonly IUserService _userService;
+        private readonly IValueStoreService _valueStoreService;
+        private readonly IDateService _dateService;
 
-        public ArticleService(DMArchiveContext context, IUserService userService)
+        public ArticleService(DMArchiveContext context, IUserService userService, IValueStoreService valueStoreService, IDateService dateService)
         {
             _context = context;
             _userService = userService;
+            _valueStoreService = valueStoreService;
+            _dateService = dateService;
+        }
+
+        public async Task<List<TimelineArticle>> GetTimeline(int campaignId)
+        {
+            var dbArticles = _context.Articles.Where(m => m.CampaignId == campaignId && m.ArticleTypeId == 4 && !m.IsDeleted && m.IsPublished).OrderBy(m => m.ArticleYear).ThenBy(m => m.ArticleMonth).ThenBy(m => m.ArticleDay).ToList();
+
+            if (dbArticles.Any())
+            {
+                var timelineArticles = new List<TimelineArticle>();
+                var monthDict = (await _valueStoreService.GetGenericValueStoreGroup<int, string>("months")).ToDictionary(k => k.Key, v => v.Value);
+                var counter = 1;
+                foreach (var article in dbArticles)
+                {
+                    timelineArticles.Add(new TimelineArticle
+                    {
+                        Id = article.Id,
+                        DayCount = counter,
+                        ArticleName = article.ArticleName,
+                        ArticleText = article.ArticleText.Length > 100 ? $"{article.ArticleText.Substring(0, 97)}..." : article.ArticleText,
+                        TimelineDay = article.ArticleDay.Value,
+                        TimelineMonth = article.ArticleMonth.Value,
+                        TimelineYear = article.ArticleYear.Value,
+                        TimelineDate = $"Den {_dateService.GetOrdinalString(counter)} dagen, {article.ArticleDay.Value}{_dateService.GetDaySuffix(article.ArticleDay.Value)} {monthDict[article.ArticleMonth.Value]}."
+                    });
+                    counter++;
+                }
+                return timelineArticles;
+            }
+            return null;
         }
 
         public async Task<List<ArticleImageMetadata>> GetArticleImages(int articleId)
@@ -127,6 +162,13 @@ namespace DungeonMastersArchive.Services
             model.CreatedAt = dbArticle.CreatedAt.Value;
             model.CreatedBy = dbArticle.CreatedBy;
 
+            if (dbArticle.ArticleTypeId == 4)
+            {
+                var monthDict = (await _valueStoreService.GetGenericValueStoreGroup<int, string>("months")).ToDictionary(k => k.Key, v => v.Value);
+                var day = _context.Articles.Where(m => m.CampaignId == dbArticle.CampaignId && !m.IsDeleted && m.IsPublished).OrderBy(m => m.ArticleYear).ThenBy(m => m.ArticleMonth).ThenBy(m => m.ArticleDay).ToList().IndexOf(dbArticle);
+                model.ArticleTypeDisplayText = $"Den {_dateService.GetOrdinalString(day)} dagen, {dbArticle.ArticleDay.Value}{_dateService.GetDaySuffix(dbArticle.ArticleDay.Value)} {monthDict[dbArticle.ArticleMonth.Value]}.";
+            }
+
             if (dbArticle.ArticleTags != null && dbArticle.ArticleTags.Any())
             {
                 model.Tags = new List<ArticleTag>();
@@ -181,6 +223,10 @@ namespace DungeonMastersArchive.Services
             model.CreatedBy = dbArticle.CreatedBy;
             model.IsDeleted = dbArticle.IsDeleted;
             model.IsPublished = dbArticle.IsPublished;
+            model.TimelineDay = dbArticle.ArticleDay;
+            model.TimelineMonthId = dbArticle.ArticleMonth;
+            model.TimelineYear = dbArticle.ArticleYear;
+            model.TimelineMonthStringId = dbArticle.ArticleMonth?.ToString();
 
             if (dbArticle.ArticleImages != null && dbArticle.ArticleImages.Any())
             {

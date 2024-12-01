@@ -18,7 +18,7 @@
                     <MudTabPanel Text="Grundläggande" Icon="@Icons.Material.Filled.Article">
                         <br />
                         <MudStack Row="true">
-                            <MudTextField Class="pa-2" T="string" @bind-Value="_model.ArticleName" Label="Titel" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha ett namn."></MudTextField>
+                            <MudTextField Class="pa-2" T="string" @bind-Value="_model.ArticleName" Label="Titel" Variant="Variant.Outlined" ></MudTextField>
                             @if (!ArticleTypeId.HasValue)
                             {
                                 <MudSelect class="pa-2" Label="Artikeltyp" T="string" @bind-Value="_model.ArticleTypeId" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en typ.">
@@ -32,14 +32,14 @@
                         @if (_model.ArticleTypeId == "5")
                         {
                             <MudStack Row="true">
-                                <MudNumericField Class="d-flex pa-2" Label="År" T="int" Min="341" Max="500" @bind-Value="_model.TimelineYear" HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha ett år."></MudNumericField>
+                                <MudNumericField Class="d-flex pa-2" Label="År" T="Nullable<int>" Min="341" Max="500" @bind-Value="_model.TimelineYear" HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha ett år."></MudNumericField>
                                 <MudSelect class="d-flex pa-2" Label="Månad" T="string" @bind-Value="_model.TimelineMonthStringId" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en månad.">
                                     @foreach (var item in _months.OrderBy(m => m.Key))
                                     {
                                         <MudSelectItem Value="@item.Key.ToString()">@item.Value</MudSelectItem>
                                     }
                                 </MudSelect>
-                                <MudNumericField Class="d-flex pa-2" Label="Dag" T="int" Min="1" Max="30" @bind-Value="_model.TimelineDay" HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en dag."></MudNumericField>
+                                <MudNumericField Class="d-flex pa-2" Label="Dag" T="Nullable<int>" Min="1" Max="30" @bind-Value="_model.TimelineDay" HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en dag."></MudNumericField>
                             </MudStack>
                         }
                         <br />

@@ -3,12 +3,41 @@
 
 @inject IArticleService ArticleService
 
-@* 
-<MudTimeline>
+@if (_model == null){
 
-</MudTimeline>
- *@
+}
+else {
+    <MudTimeline>
+    @foreach (var article in _model) {
+        <MudTimelineItem>
+            <ItemOpposite>
+                <MudButton Href="@($"/article/{article.Id}")"><MudText Typo="Typo.h6">@article.TimelineDate</MudText></MudButton>
+            </ItemOpposite>
+            <ItemContent>
+                <MudButton Href="@($"/article/{article.Id}")">
+                    @if (!string.IsNullOrEmpty(article.ArticleName)) {
+                        <MudText Typo="Typo.h6">@article.ArticleName</MudText>
+                    }
+                    <MudText Typo="Typo.body1">@((MarkupString)article.ArticleText)</MudText>
+                </MudButton>
+            </ItemContent>
+        </MudTimelineItem>
+    }
+    </MudTimeline>
+}
+
+
 
 @code {
-    private List<Models.Article.Article> _timelineArticles;
+    private List<Models.Article.TimelineArticle> _model;
+
+    private int _counter = 1;
+
+    protected override async Task OnInitializedAsync(){
+        _model = await ArticleService.GetTimeline(2);
+    }
+
+    protected override async Task OnParametersSetAsync(){
+
+    }
 }
