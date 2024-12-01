@@ -301,9 +301,14 @@
             {
                 _model.TimelineMonthId = int.Parse(_model.TimelineMonthStringId);
             }
-            _model = await ArticleService.SaveArticle(_model);
-            await ClearFileUploadAsync();
-            Snackbar.Add($"Artikeln {_model.ArticleName} har sparats.", Severity.Success);
+            try {
+                _model = await ArticleService.SaveArticle(_model);
+                await ClearFileUploadAsync();
+                Snackbar.Add($"Artikeln {_model.ArticleName} har sparats.", Severity.Success);
+            }
+            catch (Exception ex) {
+                Snackbar.Add($"Något gick fel när artikeln skulle sparas. Testa igen, har troligen med bilderna att göra. Test tabort några och spara igen.", Severity.Error);
+            }
         }
     }
 
