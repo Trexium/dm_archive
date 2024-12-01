@@ -14,7 +14,7 @@
 else
 {
     // Karaktär
-@*     @if (false && _model.ArticleTypeId == "1" || _model.ArticleTypeId == "2" || _model.ArticleTypeId == "6")
+    @*     @if (false && _model.ArticleTypeId == "1" || _model.ArticleTypeId == "2" || _model.ArticleTypeId == "6")
     {
 
     }
@@ -24,27 +24,30 @@ else
     }
     else
     { *@
-        <MudStack Row="true">
-            <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
-                <MudStack>
-                    <h2>@_model.ArticleName</h2>
-                    <ArticleImageCaruosel ArticleId="Id" />
-                    <h3>Beskrivning</h3>
-                    <MudText>
-                        @_model.ArticleText
-                    </MudText>
-                    <LinksSection ArticleId="@Id" />
-
-
-                </MudStack>
-            </MudPaper>
-            <MudPaper Class=" pa-6 ma-2" Elevation="3">
-                <MudButtonGroup Vertical="true">
-
-
-                </MudButtonGroup>
-            </MudPaper>
-        </MudStack>
+    <MudStack>
+        <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
+            <MudStack>
+                <MudText Typo="Typo.h2">@_model.ArticleName</MudText>
+                <ArticleImageCaruosel ArticleId="Id" />
+                <br />
+                <MudText Typo="Typo.body1">
+                    @((MarkupString)_model.ArticleText)
+                </MudText>
+            </MudStack>
+        </MudPaper>
+        <MudPaper Class="pa-6 ma-2" Elevation="3">
+            <LinksSection ArticleId="@Id" />
+        </MudPaper>
+        <MudPaper Class="pa-6 ma-2" Elevation="3">
+            <MudText Typo="Typo.h6">Taggar</MudText>
+            <br />
+            <MudChipSet T="string" Variant="Variant.Text" Color="Color.Info">
+                @foreach(var tag in _model.Tags){
+                    <MudChip Value="@(tag.Tag)" />
+                }
+            </MudChipSet>
+        </MudPaper>
+    </MudStack>
     @* } *@
 
 }

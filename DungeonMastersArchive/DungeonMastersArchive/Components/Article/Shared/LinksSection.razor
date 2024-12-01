@@ -4,20 +4,28 @@
 @inject IArticleService ArticleService
 @inject IUserService UserService
 
-<MudStack>
-    @if (_model != null)
-    {
-        <h3>Relaterat</h3>
-        @foreach (var linkGroup in _model.Keys)
-        {
-            <h4>@linkGroup</h4>
-            @foreach (var link in _model[linkGroup])
+
+@if (_model != null)
+{
+    <MudStack>
+        <MudText Typo="Typo.h6">Relaterat</MudText>
+        <MudStack Row="true">
+            @foreach (var linkGroup in _model.Keys)
             {
-                <MudLink Href="@($"/article/{link.ArticleId}")">@link.ArticleName</MudLink>
+                <div>
+                    <b>@linkGroup</b>
+                    <ul>
+                        @foreach (var link in _model[linkGroup])
+                        {
+                            <li><MudLink Href="@($"/article/{link.ArticleId}")">@link.ArticleName</MudLink></li>
+                        }
+                    </ul>
+                </div>
             }
-        }
-    }
-</MudStack>
+        </MudStack>
+
+    </MudStack>
+}
 
 @code {
     [Parameter]

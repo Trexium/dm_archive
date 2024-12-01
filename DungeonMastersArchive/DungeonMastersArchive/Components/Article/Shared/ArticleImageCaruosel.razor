@@ -10,12 +10,11 @@
 @if (_model != null && _model.Any())
 {
     <MudStack>
-        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" Style="height:200px;" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" Style="height:15lh;" BulletsColor="Color.Tertiary" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
             <ItemTemplate>
-                @* <MudIconButton StartIcon="@Icons.Material.Filled.ZoomOutMap" /> *@
                 <div class="d-flex flex-column flex-column justify-center" style="height:100%">
-                    <MudStack Class="pa-2 rounded">
-                        <MudButton OnClick="@(() => ShowImagePopup())">
+                    <MudStack Class="rounded">
+                        <MudButton OnClick="@(() => ShowImagePopup())" Class="pa-0">
                             <MudImage Class="d-flex flex-grow-1 flex-wrap justify-center align-center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.Cover" Elevation="25" Alt="@context.Title" />
                         </MudButton>
                     </MudStack>
@@ -24,24 +23,34 @@
         </MudCarousel>
         <MudStack Row="true">
             <MudSpacer />
-            <MudButton EndIcon="@Icons.Material.Filled.ZoomOutMap" Variant="Variant.Filled" OnClick="@(() => ShowImagePopup())" Class="pa-2 flex-wrap justify-center align-center" Align="@Align.Center">@_model[_carouselIndex].Title</MudButton>
+            <MudText Class="pa-2" Align="@Align.Center">@_model[_carouselIndex].Title</MudText>
             <MudSpacer />
         </MudStack>
-
     </MudStack>
-    <MudMessageBox @ref="_mudMessageBox" CancelText="Stäng">
-        <MessageContent>
-            <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+
+    <MudOverlay @bind-Visible="_overlayVisible" DarkBackground AutoClose="true" OnClosed="OnOverlayClosed" ZIndex="9998" Class="d-flex">
+        
+        <MudPaper Class="d-flex flex-column flex-column justify-center" Style="width: 99rem;">
+            <MudCarousel Style="height:50rem; font-size:50px;" BulletsColor="Color.Tertiary" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
                 <ItemTemplate>
                     <div class="d-flex flex-column flex-column justify-center" style="height:100%">
-                        <MudStack Class="pa-2 rounded">
-                            <MudImage Class="d-flex flex-grow-1 flex-wrap justify-center align-center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.ScaleDown" Elevation="25" Alt="@context.Title" />
+                        <MudStack>
+                            <MudImage Class="d-flex flex-grow-1 justify-center align-center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.Contain" Elevation="25" Alt="@context.Title" />
+                            
                         </MudStack>
                     </div>
                 </ItemTemplate>
             </MudCarousel>
-        </MessageContent>
-    </MudMessageBox>
+        </MudPaper>
+        <MudStack Row="true">
+            <MudSpacer />
+            <MudText Typo="Typo.h2" Class="pa-2" Align="@Align.Center">@_model[_carouselIndex].Title</MudText>
+            <MudSpacer />
+        </MudStack>
+    </MudOverlay>
+
+
+
 }
 
 @code {
@@ -55,7 +64,9 @@
     private MudCarousel<ArticleImageMetadata>? _messageBoxCarousel;
     private MudMessageBox _mudMessageBox;
 
+
     private int _carouselIndex;
+    private bool _overlayVisible = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,8 +79,14 @@
         _model = await ArticleService.GetArticleImages(ArticleId);
     }
 
-    private async Task ShowImagePopup()
+    public void OnOverlayClosed()
     {
-        bool? result = await _mudMessageBox.ShowAsync();
+
+    }
+
+    public void ShowImagePopup()
+    {
+        _overlayVisible = true;
+        StateHasChanged();
     }
 }

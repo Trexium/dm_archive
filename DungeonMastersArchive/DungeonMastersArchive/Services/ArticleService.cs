@@ -127,6 +127,15 @@ namespace DungeonMastersArchive.Services
             model.CreatedAt = dbArticle.CreatedAt.Value;
             model.CreatedBy = dbArticle.CreatedBy;
 
+            if (dbArticle.ArticleTags != null && dbArticle.ArticleTags.Any())
+            {
+                model.Tags = new List<ArticleTag>();
+                foreach (var tag in dbArticle.ArticleTags)
+                {
+                    model.Tags.Add(new ArticleTag { Id = tag.Id, ArticleId = tag.ArticleId, Tag = tag.Tag });
+                }
+            }
+
             return model;
         }
 
@@ -352,6 +361,8 @@ namespace DungeonMastersArchive.Services
                 }
                 _context.ArticleLinks.AddRange(dbChilds);
             }
+
+            
 
             try
             {

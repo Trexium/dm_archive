@@ -18,6 +18,6 @@
         public int TimelineYear { get; set; }
         //public List<ArticleImageMetadata> Images { get; set; }
         //public List<ArticleLink> Links { get; set; }
-        //public List<ArticleTag> Tags { get; set; }
+        public List<ArticleTag> Tags { get; set; }
     }
 }

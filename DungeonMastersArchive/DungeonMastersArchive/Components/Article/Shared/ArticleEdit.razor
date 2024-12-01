@@ -43,7 +43,15 @@
                             </MudStack>
                         }
                         <br />
-                        <MudTextField class="pa-2" T="string" @bind-Value="_model.ArticleText" Label="Artikeltext" Variant="Variant.Outlined" Lines="5" />
+                        @* <MudTextField class="pa-2" T="string" @bind-Value="_model.ArticleText" Label="Artikeltext" Variant="Variant.Outlined" Lines="5" /> *@
+                        <MudExRichTextEdit @ref="@_richTextEditor"
+                        Height="444"
+                        Class="m-2"
+                        Placeholder="Skriv din artikeltext..."
+                        @bind-Value="_model.ArticleText">
+
+                        </MudExRichTextEdit>
+
 
                     </MudTabPanel>
                     <MudTabPanel Text="Bilder" Icon="@Icons.Material.Filled.Image">
@@ -218,6 +226,7 @@
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
     private MudAutocomplete<Models.ValueStoreItem<int, string>> _linkAutoComplete;
     private MudAutocomplete<Models.ValueStoreItem<int, string>> _tagAutoComplete;
+    private MudExRichTextEdit _richTextEditor;
 
     private string _fileUploadDisplayText = "Dra och släpp bilder här eller klicka";
     private bool _disableFileUpload = false;
