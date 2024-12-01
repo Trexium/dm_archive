@@ -1,0 +1,75 @@
+﻿@using DungeonMastersArchive.Models.Article
+@using DungeonMastersArchive.Services
+
+@inject IUserService UserService
+@inject IArticleService ArticleService
+@inject IImageService ImageService
+
+
+
+@if (_model != null && _model.Any())
+{
+    <MudStack>
+        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" Style="height:200px;" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+            <ItemTemplate>
+                @* <MudIconButton StartIcon="@Icons.Material.Filled.ZoomOutMap" /> *@
+                <div class="d-flex flex-column flex-column justify-center" style="height:100%">
+                    <MudStack Class="pa-2 rounded">
+                        <MudButton OnClick="@(() => ShowImagePopup())">
+                            <MudImage Class="d-flex flex-grow-1 flex-wrap justify-center align-center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.Cover" Elevation="25" Alt="@context.Title" />
+                        </MudButton>
+                    </MudStack>
+                </div>
+            </ItemTemplate>
+        </MudCarousel>
+        <MudStack Row="true">
+            <MudSpacer />
+            <MudButton EndIcon="@Icons.Material.Filled.ZoomOutMap" Variant="Variant.Filled" OnClick="@(() => ShowImagePopup())" Class="pa-2 flex-wrap justify-center align-center" Align="@Align.Center">@_model[_carouselIndex].Title</MudButton>
+            <MudSpacer />
+        </MudStack>
+
+    </MudStack>
+    <MudMessageBox @ref="_mudMessageBox" CancelText="Stäng">
+        <MessageContent>
+            <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+                <ItemTemplate>
+                    <div class="d-flex flex-column flex-column justify-center" style="height:100%">
+                        <MudStack Class="pa-2 rounded">
+                            <MudImage Class="d-flex flex-grow-1 flex-wrap justify-center align-center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.ScaleDown" Elevation="25" Alt="@context.Title" />
+                        </MudStack>
+                    </div>
+                </ItemTemplate>
+            </MudCarousel>
+        </MessageContent>
+    </MudMessageBox>
+}
+
+@code {
+    [Parameter]
+    public int ArticleId { get; set; }
+
+    private Models.User.User _user;
+    private List<ArticleImageMetadata> _model;
+
+    private MudCarousel<ArticleImageMetadata>? _carousel;
+    private MudCarousel<ArticleImageMetadata>? _messageBoxCarousel;
+    private MudMessageBox _mudMessageBox;
+
+    private int _carouselIndex;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _user = await UserService.GetCurrentUser();
+        _model = await ArticleService.GetArticleImages(ArticleId);
+    }
+
+    private async Task ShowImagePopup()
+    {
+        bool? result = await _mudMessageBox.ShowAsync();
+    }
+}

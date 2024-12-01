@@ -19,6 +19,7 @@ namespace DungeonMastersArchive.Services
         Task<bool> DeleteArticle(int id);
         Task RemoveImageFromArticle(int imageId);
         Task<Dictionary<string, List<ArticleLink>>> GetArticleLinks(int articleId);
+        Task<List<ArticleImageMetadata>> GetArticleImages(int articleId);
     }
     public class ArticleService : IArticleService
     {
@@ -29,6 +30,31 @@ namespace DungeonMastersArchive.Services
         {
             _context = context;
             _userService = userService;
+        }
+
+        public async Task<List<ArticleImageMetadata>> GetArticleImages(int articleId)
+        {
+            var dbImages = _context.ArticleImages.Where(m => m.ArticleId == articleId).ToList();
+            if (dbImages.Any())
+            {
+                var images = new List<ArticleImageMetadata>();
+                foreach (var dbImage in dbImages)
+                {
+                    images.Add(new ArticleImageMetadata
+                    {
+                        Id = dbImage.Id,
+                        ArticleId = dbImage.ArticleId,
+                        CampaignId = dbImage.CampaignId,
+                        CreatedAt = dbImage.CreatedAt,
+                        FileName = dbImage.FileName,
+                        Title = dbImage.Title
+                    });
+                }
+
+                return images;
+            }
+
+            return null;
         }
 
         public async Task<Dictionary<string, List<ArticleLink>>> GetArticleLinks(int articleId)

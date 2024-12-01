@@ -25,6 +25,8 @@ namespace DungeonMastersArchive.Services
 
         public async Task<User> GetCurrentUser()
         {
+            var debugUser = new User { Id = 1, Name = "DebugUser", CurrentCampaignId = 2 };
+            return debugUser;
             var userGuid = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(userGuid))
             {

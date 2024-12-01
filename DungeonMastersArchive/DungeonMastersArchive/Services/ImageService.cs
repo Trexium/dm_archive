@@ -3,7 +3,16 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace DungeonMastersArchive.Services
 {
-    public class ImageService
+    public interface IImageService
+    {
+        string AcceptedExtensions { get; }
+        Task<bool> ValidateFileName(string fileName);
+        Task<bool> ValidateFile(IBrowserFile browserFile);
+        string GetImageUrl(ArticleImageMetadata metadata);
+        Task<ArticleImageMetadata> UploadFile(IBrowserFile browserFile, int campaignId);
+    }
+
+    public class ImageService : IImageService
     {
         private readonly string[] _imageExtensions = new string[]{"apng", "png", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "svg", "webp", "bmp", "ico", "cur", "tif", "tiff" };
         private readonly string _fileUploadFolder = $"{Directory.GetCurrentDirectory()}\\wwwroot\\uploaded_images\\";
