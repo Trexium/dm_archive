@@ -3,27 +3,45 @@
 
 @inject IArticleService ArticleService
 
-@if (_model == null){
+@if (_model == null)
+{
 
 }
-else {
-    <MudTimeline>
-    @foreach (var article in _model) {
-        <MudTimelineItem>
-            <ItemOpposite>
-                <MudButton Href="@($"/article/{article.Id}")"><MudText Typo="Typo.h6">@article.TimelineDate</MudText></MudButton>
-            </ItemOpposite>
-            <ItemContent>
-                <MudButton Href="@($"/article/{article.Id}")">
-                    @if (!string.IsNullOrEmpty(article.ArticleName)) {
-                        <MudText Typo="Typo.h6">@article.ArticleName</MudText>
-                    }
-                    <MudText Typo="Typo.body1">@((MarkupString)article.ArticleText)</MudText>
-                </MudButton>
-            </ItemContent>
-        </MudTimelineItem>
-    }
-    </MudTimeline>
+else
+{
+    <MudPaper Class="pa-6 ma-2" Elevation="3">
+        <MudStack Row="true">
+            <MudSpacer />
+            <MudTimeline Modifiers="true" Class="" TimelinePosition="TimelinePosition.Alternate">
+                @foreach (var article in _model.OrderByDescending(m => m.DayCount))
+                {
+                    <MudTimelineItem TimelineAlign="TimelineAlign.Default">
+                        <ItemOpposite>
+                            <MudButton Href="@($"/article/{article.Id}")" Variant="Variant.Text">
+                                <MudText Typo="Typo.h6">@article.TimelineDate</MudText>
+                            </MudButton>
+                        </ItemOpposite>
+                        <ItemContent>
+                            <MudCard Elevation="25" Style="max-width:30em;">
+                                <MudButton Href="@($"/article/{article.Id}")" Variant="Variant.Text">
+                                    <MudCardContent>
+                                        @if (!string.IsNullOrEmpty(article.ArticleName))
+                                        {
+                                            <MudText Typo="Typo.h6">@article.ArticleName</MudText>
+                                        }
+                                        <MudText Typo="Typo.body1">@((MarkupString)article.ArticleText)</MudText>
+                                    </MudCardContent>
+                                </MudButton>
+
+                            </MudCard>
+                        </ItemContent>
+                    </MudTimelineItem>
+
+                }
+            </MudTimeline>
+            <MudSpacer />
+        </MudStack>
+    </MudPaper>
 }
 
 
@@ -33,11 +51,13 @@ else {
 
     private int _counter = 1;
 
-    protected override async Task OnInitializedAsync(){
+    protected override async Task OnInitializedAsync()
+    {
         _model = await ArticleService.GetTimeline(2);
     }
 
-    protected override async Task OnParametersSetAsync(){
+    protected override async Task OnParametersSetAsync()
+    {
 
     }
 }
