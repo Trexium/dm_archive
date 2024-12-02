@@ -29,18 +29,21 @@ else
             <MudStack>
                 
                 <MudText Typo="Typo.h2">@(!string.IsNullOrEmpty(_model.ArticleName) ? _model.ArticleName : _model.ArticleTypeDisplayText)</MudText>
-                <ArticleImageCaruosel ArticleId="Id" />
+                
                 <br />
                 <MudText Typo="Typo.body1">
                     @((MarkupString)_model.ArticleText)
                 </MudText>
             </MudStack>
         </MudPaper>
+        <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
+            <ArticleImageCaruosel ArticleId="Id" />
+        </MudPaper>
         <MudPaper Class="pa-6 ma-2" Elevation="3">
             <LinksSection ArticleId="@Id" />
         </MudPaper>
         <MudPaper Class="pa-6 ma-2" Elevation="3">
-            <MudText Typo="Typo.h6">Taggar</MudText>
+            <MudText Typo="Typo.h6" GutterBottom="true">Taggar</MudText>
             <br />
             @if (_model.Tags != null && _model.Tags.Any())
             {

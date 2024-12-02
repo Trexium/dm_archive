@@ -9,8 +9,8 @@
 
 @if (_model != null && _model.Any())
 {
-    <MudStack>
-        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" Style="height:15lh;" BulletsColor="Color.Tertiary" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+    @*     <MudStack>
+        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" Style="height:15lh;color: dodgerblue;" BulletsColor="Color.Primary" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
             <ItemTemplate>
                 <div class="d-flex flex-column flex-column justify-center" style="height:100%">
                     <MudStack Class="rounded">
@@ -26,19 +26,28 @@
             <MudText Class="pa-2" Align="@Align.Center">@_model[_carouselIndex].Title</MudText>
             <MudSpacer />
         </MudStack>
+    </MudStack> *@
+    <MudStack>
+        <MudText Typo="Typo.h6" GutterBottom="true">Bilder</MudText>
+        <MudGrid Justify="Justify.FlexStart">
+            @foreach (var image in _model)
+            {
+                <MudItem xs="2" lg="1">
+                    <MudPaper Class="pa-2 d-flex flex-column align-center justify-center mud-width-full" @onclick="() => ShowImagePopup(_model.IndexOf(image))" Elevation="5">
+                        <MudImage Class="d-flex align-center" Style="height:100%; width:100%;" Src="@ImageService.GetImageUrl(image)" ObjectFit="ObjectFit.ScaleDown" Alt="@image.Title" />
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
     </MudStack>
 
     <MudOverlay @bind-Visible="_overlayVisible" DarkBackground AutoClose="true" OnClosed="OnOverlayClosed" ZIndex="9998" Class="d-flex">
-        
-        <MudPaper Class="d-flex flex-column flex-column justify-center" Style="width: 99rem;">
-            <MudCarousel Style="height:50rem; font-size:50px;" BulletsColor="Color.Tertiary" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+        <MudPaper Class="d-flex flex-column flex-column justify-center flex-grow-1" Style="width: 99vw;">
+            <MudCarousel class="d-flex flex-wrap" Style="color: dodgerblue;font-size:50px; height:800px;" BulletsColor="Color.Primary" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
                 <ItemTemplate>
-                    <div class="d-flex flex-column flex-column justify-center" style="height:100%">
-                        <MudStack>
-                            <MudImage Class="d-flex flex-grow-1 justify-center align-center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.Contain" Elevation="25" Alt="@context.Title" />
-                            
-                        </MudStack>
-                    </div>
+                    <MudStack>
+                        <MudImage ObjectPosition="ObjectPosition.Center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.ScaleDown" Elevation="25" Alt="@context.Title" Height="800" />
+                    </MudStack>
                 </ItemTemplate>
             </MudCarousel>
         </MudPaper>
@@ -84,8 +93,9 @@
 
     }
 
-    public void ShowImagePopup()
+    public void ShowImagePopup(int index)
     {
+        _carouselIndex = index;
         _overlayVisible = true;
         StateHasChanged();
     }
