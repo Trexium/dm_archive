@@ -11,14 +11,9 @@
         public string ArticleText { get; set; }
         public string ArticleTypeDisplayText { get; set; }
         public string ArticleTypeId { get; set; }
-        //public int TimelineDay { get; set; }
-        //public int? TimelineMonthId { get; set; }
-        //public string TimelineMonthStringId { get; set; }
-        //public string TimelineMonthText { get; set; }
-        //public int TimelineYear { get; set; }
         public string TimelineDateDisplayText { get; set; }
-        //public List<ArticleImageMetadata> Images { get; set; }
-        //public List<ArticleLink> Links { get; set; }
         public List<ArticleTag> Tags { get; set; }
+        public bool HasImages {  get; set; }
+        public bool HasLinks { get; set; }
     }
 }

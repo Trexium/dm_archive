@@ -178,6 +178,9 @@ namespace DungeonMastersArchive.Services
                 }
             }
 
+            model.HasImages = _context.ArticleImages.Where(m => m.ArticleId == model.Id).Count() > 0;
+            model.HasLinks = _context.ArticleLinks.Where(m => m.ChildArticleId == model.Id || m.ParentArticleId == model.Id).Count() > 0;
+
             return model;
         }
 

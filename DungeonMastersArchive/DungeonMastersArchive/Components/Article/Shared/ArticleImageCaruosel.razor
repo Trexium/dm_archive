@@ -9,24 +9,6 @@
 
 @if (_model != null && _model.Any())
 {
-    @*     <MudStack>
-        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_model" @bind-SelectedIndex="_carouselIndex" Style="height:15lh;color: dodgerblue;" BulletsColor="Color.Primary" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
-            <ItemTemplate>
-                <div class="d-flex flex-column flex-column justify-center" style="height:100%">
-                    <MudStack Class="rounded">
-                        <MudButton OnClick="@(() => ShowImagePopup())" Class="pa-0">
-                            <MudImage Class="d-flex flex-grow-1 flex-wrap justify-center align-center" Src="@ImageService.GetImageUrl(context)" ObjectFit="ObjectFit.Cover" Elevation="25" Alt="@context.Title" />
-                        </MudButton>
-                    </MudStack>
-                </div>
-            </ItemTemplate>
-        </MudCarousel>
-        <MudStack Row="true">
-            <MudSpacer />
-            <MudText Class="pa-2" Align="@Align.Center">@_model[_carouselIndex].Title</MudText>
-            <MudSpacer />
-        </MudStack>
-    </MudStack> *@
     <MudStack>
         <MudText Typo="Typo.h6" GutterBottom="true">Bilder</MudText>
         <MudGrid Justify="Justify.FlexStart">
