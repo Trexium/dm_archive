@@ -3,7 +3,7 @@
     public class TimelineArticle
     {
         public int Id { get; set; }
-        public int DayCount { get; set; }
+        public int SortOrderNumber { get; set; }
         public string ArticleName { get; set; }
         public string ArticleText {  get; set; }
         public int TimelineDay { get; set; }

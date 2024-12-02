@@ -21,7 +21,10 @@ namespace DungeonMastersArchive.Services
         Task RemoveImageFromArticle(int imageId);
         Task<Dictionary<string, List<ArticleLink>>> GetArticleLinks(int articleId);
         Task<List<ArticleImageMetadata>> GetArticleImages(int articleId);
-        Task<List<TimelineArticle>> GetTimeline(int campaignId);
+        Task<Dictionary<int, List<TimelineArticle>>> GetTimeline(int campaignId);
+        Task Publish(int articleId);
+        Task Unpublish(int articleId);
+        Task UndeleteArticle(int articleId);
     }
     public class ArticleService : IArticleService
     {
@@ -38,31 +41,71 @@ namespace DungeonMastersArchive.Services
             _dateService = dateService;
         }
 
-        public async Task<List<TimelineArticle>> GetTimeline(int campaignId)
+        public async Task Publish(int articleId)
         {
-            var dbArticles = _context.Articles.Where(m => m.CampaignId == campaignId && m.ArticleTypeId == 4 && !m.IsDeleted && m.IsPublished).OrderBy(m => m.ArticleYear).ThenBy(m => m.ArticleMonth).ThenBy(m => m.ArticleDay).ToList();
+            var article = _context.Articles.FirstOrDefault(m => m.Id == articleId);
+            if (article != null)
+            {
+                article.IsPublished = true;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task Unpublish(int articleId)
+        {
+            var article = _context.Articles.FirstOrDefault(m => m.Id == articleId);
+            if (article != null)
+            {
+                article.IsPublished = false;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UndeleteArticle(int articleId)
+        {
+            var article = _context.Articles.FirstOrDefault(m => m.Id == articleId);
+            if (article != null)
+            {
+                article.IsDeleted = false;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Dictionary<int, List<TimelineArticle>>> GetTimeline(int campaignId)
+        {
+            var dbArticles = _context.Articles.Where(m => m.CampaignId == campaignId && m.ArticleTypeId == 4 && !m.IsDeleted && m.IsPublished)
+                .OrderBy(m => m.ArticleYear).ThenBy(m => m.ArticleMonth).ThenBy(m => m.ArticleDay)
+                .GroupBy(m => m.ArticleYear)
+                .ToDictionary(k => k.Key.Value, v => v.ToList());
 
             if (dbArticles.Any())
             {
-                var timelineArticles = new List<TimelineArticle>();
+                var timelineDict = new Dictionary<int, List<TimelineArticle>>();
+
                 var monthDict = (await _valueStoreService.GetGenericValueStoreGroup<int, string>("months")).ToDictionary(k => k.Key, v => v.Value);
                 var counter = 1;
-                foreach (var article in dbArticles)
+                foreach (var articleYear in dbArticles)
                 {
-                    timelineArticles.Add(new TimelineArticle
+                    var timelineArticles = new List<TimelineArticle>();
+                    foreach (var article in articleYear.Value)
                     {
-                        Id = article.Id,
-                        DayCount = counter,
-                        ArticleName = article.ArticleName,
-                        ArticleText = article.ArticleText.Length > 100 ? $"{article.ArticleText.Substring(0, 97)}..." : article.ArticleText,
-                        TimelineDay = article.ArticleDay.Value,
-                        TimelineMonth = article.ArticleMonth.Value,
-                        TimelineYear = article.ArticleYear.Value,
-                        TimelineDate = $"Den {_dateService.GetOrdinalString(counter)} dagen, {article.ArticleDay.Value}{_dateService.GetDaySuffix(article.ArticleDay.Value)} {monthDict[article.ArticleMonth.Value]}."
-                    });
-                    counter++;
+                        timelineArticles.Add(new TimelineArticle
+                        {
+                            Id = article.Id,
+                            SortOrderNumber = counter,
+                            ArticleName = article.ArticleName,
+                            ArticleText = article.ArticleText.Length > 100 ? $"{article.ArticleText.Substring(0, 97)}..." : article.ArticleText,
+                            TimelineDay = article.ArticleDay.Value,
+                            TimelineMonth = article.ArticleMonth.Value,
+                            TimelineYear = article.ArticleYear.Value,
+                            TimelineDate = $"Den {_dateService.GetOrdinalString(counter)} dagen, {article.ArticleDay.Value}{_dateService.GetDaySuffix(article.ArticleDay.Value)} {monthDict[article.ArticleMonth.Value]}."
+                        });
+                        counter++;
+                    }
+                    timelineDict.Add(articleYear.Key, timelineArticles);
+
                 }
-                return timelineArticles;
+                return timelineDict;
             }
             return null;
         }
@@ -411,7 +454,7 @@ namespace DungeonMastersArchive.Services
                 _context.ArticleLinks.AddRange(dbChilds);
             }
 
-            
+
 
             try
             {

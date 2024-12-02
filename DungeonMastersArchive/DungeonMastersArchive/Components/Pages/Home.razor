@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
 
 @inject IArticleService ArticleService
@@ -13,30 +14,39 @@ else
         <MudStack Row="true">
             <MudSpacer />
             <MudTimeline Modifiers="true" Class="" TimelinePosition="TimelinePosition.Alternate">
-                @foreach (var article in _model.OrderByDescending(m => m.DayCount))
+                @foreach (var articleYear in _model.OrderByDescending(m => m.Key))
                 {
-                    <MudTimelineItem TimelineAlign="TimelineAlign.Default">
-                        <ItemOpposite>
-                            <MudButton Href="@($"/article/{article.Id}")" Variant="Variant.Text">
-                                <MudText Typo="Typo.h6">@article.TimelineDate</MudText>
-                            </MudButton>
-                        </ItemOpposite>
-                        <ItemContent>
-                            <MudCard Elevation="25" Style="max-width:30em;">
+                    @foreach (var article in articleYear.Value.OrderByDescending(m => m.SortOrderNumber))
+                    {
+                        <MudTimelineItem TimelineAlign="TimelineAlign.Default">
+                            <ItemOpposite>
                                 <MudButton Href="@($"/article/{article.Id}")" Variant="Variant.Text">
-                                    <MudCardContent>
-                                        @if (!string.IsNullOrEmpty(article.ArticleName))
-                                        {
-                                            <MudText Typo="Typo.h6">@article.ArticleName</MudText>
-                                        }
-                                        <MudText Typo="Typo.body1">@((MarkupString)article.ArticleText)</MudText>
-                                    </MudCardContent>
+                                    <MudText Typo="Typo.h6">@article.TimelineDate</MudText>
                                 </MudButton>
+                            </ItemOpposite>
+                            <ItemContent>
+                                <MudCard Elevation="5" Style="max-width:30em;">
+                                    <MudButton Href="@($"/article/{article.Id}")" Variant="Variant.Text">
+                                        <MudCardContent>
+                                            @if (!string.IsNullOrEmpty(article.ArticleName))
+                                            {
+                                                <MudText Typo="Typo.h6">@article.ArticleName</MudText>
+                                            }
+                                            <MudText Typo="Typo.body1">@((MarkupString)article.ArticleText)</MudText>
+                                        </MudCardContent>
+                                    </MudButton>
 
-                            </MudCard>
-                        </ItemContent>
+                                </MudCard>
+                            </ItemContent>
+                        </MudTimelineItem>
+                    }
+                    <MudTimelineItem TimelineAlign="TimelineAlign.End">
+                        <ItemDot>
+                            <MudPaper Class="pa-2" Elevation="24">
+                                <MudText Style="width:30em;" Align="Align.Center" Typo="Typo.h5">@($"År {articleYear.Key} enligt Jorges kalender.")</MudText>
+                            </MudPaper>
+                        </ItemDot>
                     </MudTimelineItem>
-
                 }
             </MudTimeline>
             <MudSpacer />
@@ -47,9 +57,7 @@ else
 
 
 @code {
-    private List<Models.Article.TimelineArticle> _model;
-
-    private int _counter = 1;
+    private Dictionary<int, List<TimelineArticle>> _model;
 
     protected override async Task OnInitializedAsync()
     {
