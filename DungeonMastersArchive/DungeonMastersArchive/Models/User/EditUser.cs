@@ -7,7 +7,7 @@
         public string Email { get; set; }
         public bool IsVerified { get; set; }
         public bool IsDeleted { get; set; }
-        public Role Role { get; set; }
+        public int? RoleId { get; set; }
         public DungeonMasterArchiveData.Models.AspNetUser AspNetUser { get; set; }
     }
 }

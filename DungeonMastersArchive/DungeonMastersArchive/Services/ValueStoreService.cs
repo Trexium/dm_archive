@@ -9,6 +9,7 @@ namespace DungeonMastersArchive.Services
         Task<List<ValueStoreItem<KeyType, ValueType>>> GetGenericValueStoreGroup<KeyType, ValueType>(string group);
         Task<List<ValueStoreItem<int, string>>> GetArticles(int campaignId);
         Task<List<ValueStoreItem<int, string>>> GetTags();
+        Task<List<ValueStoreItem<int?, string>>> GetRoles();
     }
     public class ValueStoreService : IValueStoreService
     {
@@ -48,6 +49,13 @@ namespace DungeonMastersArchive.Services
             var items = dbItems
                 .Select(m => new ValueStoreItem<KeyType, ValueType>((KeyType)Convert.ChangeType(m.Key, typeof(KeyType)), (ValueType)Convert.ChangeType(m.Value, typeof(ValueType))))
                 .ToList();
+            return items;
+        }
+
+        public async Task<List<ValueStoreItem<int?, string>>> GetRoles()
+        {
+            var dbItems = _context.Roles.ToList();
+            var items = dbItems.Select(m => new ValueStoreItem<int?, string>(m.Id, m.Name)).ToList();
             return items;
         }
     }

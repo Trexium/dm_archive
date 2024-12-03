@@ -454,8 +454,6 @@ namespace DungeonMastersArchive.Services
                 _context.ArticleLinks.AddRange(dbChilds);
             }
 
-
-
             try
             {
                 await _context.SaveChangesAsync();

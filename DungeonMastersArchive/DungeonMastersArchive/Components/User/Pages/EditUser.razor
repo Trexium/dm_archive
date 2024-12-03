@@ -14,18 +14,31 @@ else
     <MudForm @ref="_form">
         <MudStack Row="true">
             <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
+                <MudStack Row="true">
+                    <MudTextField Required RequiredError="Ett namn måste anges." Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Name" Label="Namn" Variant="Variant.Outlined"></MudTextField>
+                    <MudTextField Required RequiredError="En e-post måste anges." Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Email" Label="E-post" Variant="Variant.Outlined" InputType="InputType.Email"></MudTextField>
+                </MudStack>
+                <MudStack>
+                    <MudCheckBox Class="pa-2" Disabled="@_model.IsDeleted" Label="Verifierad" @bind-Value="_model.IsVerified"></MudCheckBox>
+                    <MudSelect Required RequiredError="En roll måste sättas på användaren." T="int?" @bind-Value="_model.RoleId" Disabled="@_model.IsDeleted" Class="pa-2" Label="Behörighet">
+                        @foreach (var role in _roles)
+                        {
+                            <MudSelectItem Value="@role.Key">@role.Value</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudStack>
 
             </MudPaper>
             <MudPaper Class=" pa-6 ma-2" Elevation="3">
                 <MudButtonGroup Vertical="true">
-                    <MudButton StartIcon="@Icons.Material.Filled.Public"  Disabled="@_model.IsDeleted">Publicera</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Public" Disabled="@_model.IsDeleted">Nollställ lösenord</MudButton>
                     @if (_model.IsDeleted)
                     {
-                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="UndeleteArticle">Trolla tillbaka</MudButton>
+                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="UndeleteUser">Trolla tillbaka</MudButton>
                     }
                     else
                     {
-                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteArticle">Tabort</MudButton>
+                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteUser">Tabort</MudButton>
                     }
                     <MudButton OnClick="SaveClick" StartIcon="@Icons.Material.Filled.Save" Disabled="@_model.IsDeleted">Spara</MudButton>
                 </MudButtonGroup>
@@ -42,6 +55,7 @@ else
 
     private Models.User.EditUser _model;
     private Models.User.User _currentUser;
+    private List<Models.ValueStoreItem<int?, string>> _roles;
 
     private MudForm _form;
 
@@ -54,9 +68,45 @@ else
     protected override async Task OnParametersSetAsync()
     {
         _currentUser = await UserService.GetCurrentUser();
+        _roles = await ValueStoreService.GetRoles();
         if (Id.HasValue)
         {
             _model = await UserService.GetEditUser(Id.Value, _currentUser.CurrentCampaignId);
         }
+        else
+        {
+            _model = new Models.User.EditUser();
+        }
+    }
+
+    private async Task DeleteUser()
+    {
+        if (await UserService.DeleteUser(Id.Value))
+        {
+            Snackbar.Add("Användaren har tagits bort.", Severity.Info);
+            _model.IsDeleted = true;
+        }
+        else
+        {
+            Snackbar.Add("Användaren gick inte att tabort.", Severity.Error);
+        }
+    }
+
+    private async Task UndeleteUser()
+    {
+        if (await UserService.UndeleteUser(Id.Value))
+        {
+            Snackbar.Add("Användaren har tagits tillbaka.", Severity.Info);
+            _model.IsDeleted = true;
+        }
+        else
+        {
+            Snackbar.Add("Användaren gick inte att ta tillbaka.", Severity.Error);
+        }
+    }
+
+    private async Task SaveClick()
+    {
+        _model = await UserService.SaveUser(_model, _currentUser.CurrentCampaignId);
     }
 }

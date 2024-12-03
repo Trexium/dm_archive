@@ -13,6 +13,8 @@ public partial class ArchiveUser
 
     public int? CurrentCampaignId { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<Article> ArticleCreatedByNavigations { get; set; } = new List<Article>();
 
     public virtual ICollection<ArticleImage> ArticleImages { get; set; } = new List<ArticleImage>();

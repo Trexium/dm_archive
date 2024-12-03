@@ -19,7 +19,6 @@
                 <MudTd DataLabel="E-post">@context.Email</MudTd>
                 <MudTd DataLabel="Åtgärder">
                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@($"/edit-user/{context.Id}")" />
-                    <MudIconButton Icon="@Icons.Material.Filled.PersonOff" OnClick="() => DeleteUser(context.Id)" />
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -44,10 +43,5 @@
     {
         var user = await UserService.GetCurrentUser();
         _model = await UserService.GetUsers(user.CurrentCampaignId);
-    }
-
-    private async Task DeleteUser(int id)
-    {
-
     }
 }
