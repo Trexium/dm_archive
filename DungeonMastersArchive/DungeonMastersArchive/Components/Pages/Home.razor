@@ -1,15 +1,26 @@
 ﻿@page "/"
+@using DungeonMastersArchive.Data
 @using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 
 @inject IArticleService ArticleService
+@inject UserManager<ApplicationUser> UserManager
+
+@attribute [Authorize]
+
 
 @if (_model == null)
 {
-
+    <p>allt är null</p>
 }
 else
 {
+
+@*     <AuthorizeView>
+        <MudText Class="mb-4">Hello @context.User.Identity?.Name!</MudText>
+    </AuthorizeView> *@
     <MudPaper Class="pa-6 ma-2" Elevation="3">
         <MudStack Row="true">
             <MudSpacer />
@@ -59,13 +70,14 @@ else
 @code {
     private Dictionary<int, List<TimelineArticle>> _model;
 
+
     protected override async Task OnInitializedAsync()
     {
-        _model = await ArticleService.GetTimeline(2);
+        
     }
 
     protected override async Task OnParametersSetAsync()
     {
-
+        _model = await ArticleService.GetTimeline(2);
     }
 }

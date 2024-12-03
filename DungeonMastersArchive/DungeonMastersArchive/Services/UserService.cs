@@ -1,5 +1,8 @@
 ﻿using DungeonMasterArchiveData.Data;
+using DungeonMastersArchive.Components.Account;
+using DungeonMastersArchive.Data;
 using DungeonMastersArchive.Models.User;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using DataModels = DungeonMasterArchiveData.Models;
@@ -20,13 +23,14 @@ namespace DungeonMastersArchive.Services
     public class UserService : IUserService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly DMArchiveContext _context;
 
-        public UserService(DMArchiveContext context, IHttpContextAccessor httpContextAccessor)
+        public UserService(DMArchiveContext context, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _userManager = userManager;
         }
 
         public async Task<EditUser> GetEditUser(int userId, int campaignId)

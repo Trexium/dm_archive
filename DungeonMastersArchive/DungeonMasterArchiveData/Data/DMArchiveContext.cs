@@ -52,7 +52,7 @@ public partial class DMArchiveContext : DbContext
 
     public virtual DbSet<UserCampaignRole> UserCampaignRoles { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { ]}
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccessType>(entity =>
