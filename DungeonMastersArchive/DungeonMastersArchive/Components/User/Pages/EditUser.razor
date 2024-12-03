@@ -1,0 +1,62 @@
+﻿@page "/edit-user/{id:int?}"
+@using DungeonMastersArchive.Services
+
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+@inject IValueStoreService ValueStoreService
+
+@if (_model == null)
+{
+
+}
+else
+{
+    <MudForm @ref="_form">
+        <MudStack Row="true">
+            <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
+
+            </MudPaper>
+            <MudPaper Class=" pa-6 ma-2" Elevation="3">
+                <MudButtonGroup Vertical="true">
+                    <MudButton StartIcon="@Icons.Material.Filled.Public"  Disabled="@_model.IsDeleted">Publicera</MudButton>
+                    @if (_model.IsDeleted)
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="UndeleteArticle">Trolla tillbaka</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteArticle">Tabort</MudButton>
+                    }
+                    <MudButton OnClick="SaveClick" StartIcon="@Icons.Material.Filled.Save" Disabled="@_model.IsDeleted">Spara</MudButton>
+                </MudButtonGroup>
+            </MudPaper>
+        </MudStack>
+    </MudForm>
+}
+
+
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Models.User.EditUser _model;
+    private Models.User.User _currentUser;
+
+    private MudForm _form;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _currentUser = await UserService.GetCurrentUser();
+        if (Id.HasValue)
+        {
+            _model = await UserService.GetEditUser(Id.Value, _currentUser.CurrentCampaignId);
+        }
+    }
+}

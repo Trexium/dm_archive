@@ -1,0 +1,53 @@
+﻿@page "/users"
+@using DungeonMastersArchive.Models.User
+@using DungeonMastersArchive.Services
+
+@inject IUserService UserService
+
+<MudText Typo="Typo.h3">Spelare</MudText>
+
+<div class="d-flex flex-row">
+    <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
+        <MudTable T="UserMini" Items="@_model">
+            <HeaderContent>
+                <MudTh>Spelare</MudTh>
+                <MudTh>E-post</MudTh>
+                <MudTh>Åtgärder</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Spelare">@context.Name</MudTd>
+                <MudTd DataLabel="E-post">@context.Email</MudTd>
+                <MudTd DataLabel="Åtgärder">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@($"/edit-user/{context.Id}")" />
+                    <MudIconButton Icon="@Icons.Material.Filled.PersonOff" OnClick="() => DeleteUser(context.Id)" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+    <MudPaper Class=" pa-6 ma-2" Elevation="3">
+        <MudButtonGroup Vertical="true">
+            <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" Href="/edit-user">Ny spelare</MudButton>
+        </MudButtonGroup>
+    </MudPaper>
+</div>
+
+@code {
+    private List<UserMini> _model;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var user = await UserService.GetCurrentUser();
+        _model = await UserService.GetUsers(user.CurrentCampaignId);
+    }
+
+    private async Task DeleteUser(int id)
+    {
+
+    }
+}

@@ -10,7 +10,8 @@ create table ArchiveUser
 	Id int identity(1,1) primary key,
 	[Name] nvarchar(255) not null,
 	AspNetUserId nvarchar(450) foreign key references AspNetUsers(Id),
-	CurrentCampaignId int
+	CurrentCampaignId int null,
+	IsDeleted bit not null
 )
 
 create table UserCampaignRole

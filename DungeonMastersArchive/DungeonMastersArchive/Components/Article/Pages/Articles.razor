@@ -5,8 +5,7 @@
 @inject IArticleService ArticleService
 @inject ISnackbar Snackbar
 
-<h3>Artiklar</h3>
-
+<MudText Typo="Typo.h3">Artiklar</MudText>
 
 <div class="d-flex flex-row">
     <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
@@ -58,20 +57,7 @@
 @code {
     private List<ArticleMini> _articles;
 
-    private string GetEditLink(int id){
-        return $"/edit-article/{id}";
-    }
-
-    private async Task DeleteArticle(int id){
-        if (await ArticleService.DeleteArticle(id)){
-            Snackbar.Add($"Artikeln har tagits bort.", Severity.Success);
-        }
-        else {
-            Snackbar.Add($"Ett problem inträffade när artikeln skulle tas bort.", Severity.Error);
-        }
     
-    }
-
     protected override async Task OnInitializedAsync()
     {
 
@@ -80,6 +66,23 @@
     protected override async Task OnParametersSetAsync()
     {
         _articles = await ArticleService.GetArticles();
+    }
+
+    private string GetEditLink(int id)
+    {
+        return $"/edit-article/{id}";
+    }
+
+    private async Task DeleteArticle(int id)
+    {
+        if (await ArticleService.DeleteArticle(id))
+        {
+            Snackbar.Add($"Artikeln har tagits bort.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Ett problem inträffade när artikeln skulle tas bort.", Severity.Error);
+        }
     }
 }
 

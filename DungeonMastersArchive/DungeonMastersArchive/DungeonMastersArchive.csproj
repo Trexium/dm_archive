@@ -23,4 +23,9 @@
     <ProjectReference Include="..\DungeonMasterArchiveData\DungeonMasterArchiveData.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Folder Include="Components\User\Shared\" />
+  </ItemGroup>
+
 </Project>
