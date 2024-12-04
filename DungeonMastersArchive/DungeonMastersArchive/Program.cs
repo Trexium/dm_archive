@@ -57,6 +57,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 var emailSettings = builder.Configuration.GetSection("EmailSenderSettings");
 builder.Services.Configure<EmailSenderSettings>(emailSettings);
+var systemDefaults = builder.Configuration.GetSection("SystemDefaults");
+builder.Services.Configure<DungeonMastersArchive.Models.SystemDefaults>(systemDefaults);
 builder.Services.AddScoped<IValueStoreService, ValueStoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();

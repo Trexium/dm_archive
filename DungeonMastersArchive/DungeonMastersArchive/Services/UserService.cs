@@ -1,10 +1,16 @@
 ﻿using DungeonMasterArchiveData.Data;
 using DungeonMastersArchive.Components.Account;
 using DungeonMastersArchive.Data;
+using DungeonMastersArchive.Models;
 using DungeonMastersArchive.Models.User;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using MudBlazor;
 using System.Security.Claims;
+using System.Text;
 using DataModels = DungeonMasterArchiveData.Models;
 
 
@@ -26,13 +32,15 @@ namespace DungeonMastersArchive.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserStore<ApplicationUser> _userStore;
         private readonly DMArchiveContext _context;
+        private readonly SystemDefaults _systemDefaults;
 
-        public UserService(DMArchiveContext context, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager, IUserStore<ApplicationUser> userStore)
+        public UserService(DMArchiveContext context, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager, IUserStore<ApplicationUser> userStore, IOptions<SystemDefaults> systemDefaults)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
             _userStore = userStore;
+            _systemDefaults = systemDefaults.Value;
         }
 
         public async Task<EditUser> GetEditUser(int userId, int campaignId)
@@ -50,8 +58,8 @@ namespace DungeonMastersArchive.Services
                     Email = archiveUser.AspNetUser.Email,
                     Name = archiveUser.Name,
                     IsVerified = archiveUser.AspNetUser.EmailConfirmed,
-                    AspNetUser = archiveUser.AspNetUser,
-                    IsDeleted = archiveUser.IsDeleted
+                    IsDeleted = archiveUser.IsDeleted,
+                    AspNetUserId = archiveUser.AspNetUserId,
                 };
 
                 var dbRole = archiveUser.UserCampaignRoles.FirstOrDefault(m => m.CampaignId == campaignId)?.Role;
@@ -136,20 +144,13 @@ namespace DungeonMastersArchive.Services
 
         public async Task<EditUser> SaveUser(EditUser user, int campaignId)
         {
-
-            ApplicationUser aspUser;
-
             DataModels.ArchiveUser dbUser;
             if (!user.Id.HasValue)
             {
-                
                 dbUser = new DataModels.ArchiveUser();
                 dbUser.IsDeleted = false;
                 dbUser.AspNetUser = new DataModels.AspNetUser();
                 dbUser.AspNetUser.Id = Guid.NewGuid().ToString();
-                var aspUser = Activator.CreateInstance<ApplicationUser>();
-                 
-                var aspUserResult = await _userManager.CreateAsync()
             }
             else
             {
@@ -159,14 +160,32 @@ namespace DungeonMastersArchive.Services
                     .Include(m => m.UserCampaignRoles)
                     .First(m => m.Id == user.Id);
             }
+
+            if (string.IsNullOrEmpty(user.AspNetUserId))
+            {
+                var aspUser = Activator.CreateInstance<ApplicationUser>();
+                await _userStore.SetUserNameAsync(aspUser, user.Email, CancellationToken.None);
+                await ((IUserEmailStore<ApplicationUser>)_userStore).SetEmailAsync(aspUser, user.Email, CancellationToken.None);
+                var createAspUserResult = await _userManager.CreateAsync(aspUser, user.Password ?? _systemDefaults.UserPassword);
+            }
+            else
+            {
+                var aspUser = await _userStore.FindByIdAsync(user.AspNetUserId, CancellationToken.None);
+                if (aspUser.Email != user.Email)
+                {
+                    await _userStore.SetUserNameAsync(aspUser, user.Email, CancellationToken.None);
+                    await ((IUserEmailStore<ApplicationUser>)_userStore).SetEmailAsync(aspUser, user.Email, CancellationToken.None);
+                }
+                if (!string.IsNullOrEmpty(user.Password))
+                {
+                    var code = await _userManager.GeneratePasswordResetTokenAsync(aspUser);
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    await _userManager.ResetPasswordAsync(aspUser, code, user.Password);
+                }
+            }
+
+
             dbUser.Name = user.Name;
-            //dbUser.AspNetUser.EmailConfirmed = user.IsVerified;
-            //dbUser.AspNetUser.Email = user.Email;
-            //dbUser.AspNetUser.UserName = user.Email;
-
-            await _userStore.SetUserNameAsync(user, user.Email, CancellationToken.None);
-
-
 
             dbUser.UserCampaignRoles = new List<DataModels.UserCampaignRole>();
             dbUser.UserCampaignRoles.Add(new DataModels.UserCampaignRole
@@ -178,6 +197,7 @@ namespace DungeonMastersArchive.Services
             if (!user.Id.HasValue)
             {
                 _context.ArchiveUsers.Add(dbUser);
+
             }
 
             try
