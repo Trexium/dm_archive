@@ -24,13 +24,15 @@ namespace DungeonMastersArchive.Services
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserStore<ApplicationUser> _userStore;
         private readonly DMArchiveContext _context;
 
-        public UserService(DMArchiveContext context, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+        public UserService(DMArchiveContext context, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager, IUserStore<ApplicationUser> userStore)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
+            _userStore = userStore;
         }
 
         public async Task<EditUser> GetEditUser(int userId, int campaignId)
@@ -135,16 +137,19 @@ namespace DungeonMastersArchive.Services
         public async Task<EditUser> SaveUser(EditUser user, int campaignId)
         {
 
-
+            ApplicationUser aspUser;
 
             DataModels.ArchiveUser dbUser;
             if (!user.Id.HasValue)
             {
+                
                 dbUser = new DataModels.ArchiveUser();
                 dbUser.IsDeleted = false;
                 dbUser.AspNetUser = new DataModels.AspNetUser();
                 dbUser.AspNetUser.Id = Guid.NewGuid().ToString();
-
+                var aspUser = Activator.CreateInstance<ApplicationUser>();
+                 
+                var aspUserResult = await _userManager.CreateAsync()
             }
             else
             {
@@ -155,9 +160,12 @@ namespace DungeonMastersArchive.Services
                     .First(m => m.Id == user.Id);
             }
             dbUser.Name = user.Name;
-            dbUser.AspNetUser.EmailConfirmed = user.IsVerified;
-            dbUser.AspNetUser.Email = user.Email;
-            dbUser.AspNetUser.UserName = user.Email;
+            //dbUser.AspNetUser.EmailConfirmed = user.IsVerified;
+            //dbUser.AspNetUser.Email = user.Email;
+            //dbUser.AspNetUser.UserName = user.Email;
+
+            await _userStore.SetUserNameAsync(user, user.Email, CancellationToken.None);
+
 
 
             dbUser.UserCampaignRoles = new List<DataModels.UserCampaignRole>();

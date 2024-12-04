@@ -15,11 +15,15 @@ else
         <MudStack Row="true">
             <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
                 <MudStack Row="true">
-                    <MudTextField Required RequiredError="Ett namn måste anges." Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Name" Label="Namn" Variant="Variant.Outlined"></MudTextField>
-                    <MudTextField Required RequiredError="En e-post måste anges." Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Email" Label="E-post" Variant="Variant.Outlined" InputType="InputType.Email"></MudTextField>
+                    <MudItem md="6"><MudTextField Required RequiredError="Ett namn måste anges." Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Name" Label="Namn" Variant="Variant.Outlined"></MudTextField></MudItem>
+                    <MudItem md="6"><MudCheckBox Class="pa-2" Disabled="@_model.IsDeleted" Label="Verifierad" @bind-Value="_model.IsVerified"></MudCheckBox></MudItem>
+                </MudStack>
+                <MudStack Row="true">
+                    <MudItem md="6"><MudTextField Required RequiredError="En e-post måste anges." Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Email" Label="E-post" Variant="Variant.Outlined" InputType="InputType.Email"></MudTextField></MudItem>
+                    <MudItem md="6"><MudTextField Required RequiredError="Du måste ange ett lösenord." Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Password" Label="Lösenord" Variant="Variant.Outlined" InputType="InputType.Password"></MudTextField></MudItem>
                 </MudStack>
                 <MudStack>
-                    <MudCheckBox Class="pa-2" Disabled="@_model.IsDeleted" Label="Verifierad" @bind-Value="_model.IsVerified"></MudCheckBox>
+                    
                     <MudSelect Required RequiredError="En roll måste sättas på användaren." T="int?" @bind-Value="_model.RoleId" Disabled="@_model.IsDeleted" Class="pa-2" Label="Behörighet">
                         @foreach (var role in _roles)
                         {
@@ -76,6 +80,7 @@ else
         else
         {
             _model = new Models.User.EditUser();
+            _model.IsVerified = true;
         }
     }
 
