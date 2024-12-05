@@ -92,8 +92,8 @@ namespace DungeonMastersArchive.Services
 
         public async Task<User> GetCurrentUser()
         {
-            var debugUser = new User { Id = 1, Name = "DebugUser", CurrentCampaignId = 2 };
-            return debugUser;
+            //var debugUser = new User { Id = 1, Name = "DebugUser", CurrentCampaignId = 2 };
+            //return debugUser;
             var userGuid = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(userGuid))
             {
@@ -103,7 +103,8 @@ namespace DungeonMastersArchive.Services
                 {
                     Id = dbUser.Id,
                     Name = dbUser.Name,
-                    CurrentCampaignId = dbUser.CurrentCampaignId ?? 0
+                    CurrentCampaignId = dbUser.CurrentCampaignId ?? 0,
+                    AspUserId = userGuid
                 };
 
                 return user;
@@ -149,41 +150,16 @@ namespace DungeonMastersArchive.Services
             {
                 dbUser = new DataModels.ArchiveUser();
                 dbUser.IsDeleted = false;
-                dbUser.AspNetUser = new DataModels.AspNetUser();
-                dbUser.AspNetUser.Id = Guid.NewGuid().ToString();
+                dbUser.AspNetUserId = user.AspNetUserId;
             }
             else
             {
-                await _context.UserCampaignRoles.Where(m => m.UserId == user.Id).ExecuteDeleteAsync();
+                await _context.UserCampaignRoles.Where(m => m.UserId == user.Id && m.CampaignId == campaignId).ExecuteDeleteAsync();
                 dbUser = _context.ArchiveUsers
                     .Include(m => m.AspNetUser)
                     .Include(m => m.UserCampaignRoles)
                     .First(m => m.Id == user.Id);
             }
-
-            if (string.IsNullOrEmpty(user.AspNetUserId))
-            {
-                var aspUser = Activator.CreateInstance<ApplicationUser>();
-                await _userStore.SetUserNameAsync(aspUser, user.Email, CancellationToken.None);
-                await ((IUserEmailStore<ApplicationUser>)_userStore).SetEmailAsync(aspUser, user.Email, CancellationToken.None);
-                var createAspUserResult = await _userManager.CreateAsync(aspUser, user.Password ?? _systemDefaults.UserPassword);
-            }
-            else
-            {
-                var aspUser = await _userStore.FindByIdAsync(user.AspNetUserId, CancellationToken.None);
-                if (aspUser.Email != user.Email)
-                {
-                    await _userStore.SetUserNameAsync(aspUser, user.Email, CancellationToken.None);
-                    await ((IUserEmailStore<ApplicationUser>)_userStore).SetEmailAsync(aspUser, user.Email, CancellationToken.None);
-                }
-                if (!string.IsNullOrEmpty(user.Password))
-                {
-                    var code = await _userManager.GeneratePasswordResetTokenAsync(aspUser);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    await _userManager.ResetPasswordAsync(aspUser, code, user.Password);
-                }
-            }
-
 
             dbUser.Name = user.Name;
 

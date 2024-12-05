@@ -1,12 +1,18 @@
 ﻿@page "/edit-user/{id:int?}"
 @using DungeonMastersArchive.Data
+@using DungeonMastersArchive.Models
 @using DungeonMastersArchive.Services
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Options
+@using System.Text
 
 @inject IUserService UserService
 @inject ISnackbar Snackbar
 @inject IValueStoreService ValueStoreService
 @inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject IOptions<SystemDefaults> SystemDefaults
 
 @if (_model == null)
 {
@@ -118,7 +124,143 @@ else
         await _form.Validate();
         if (_form.IsValid)
         {
-            _model = await UserService.SaveUser(_model, _currentUser.CurrentCampaignId);
+            string errorMessage = null;
+            if (!_model.Id.HasValue && await CreateAspUser())
+            {
+                try
+                {
+                    _model = await UserService.SaveUser(_model, _currentUser.CurrentCampaignId);
+                    Snackbar.Add($"Den nya användaren ({_model.Name}) har skapats.", Severity.Success);
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add("Något gick fel med att skapa användaren.", Severity.Error);
+                }
+
+
+            }
+            else if (await UpdateAspUser())
+            {
+                try
+                {
+                    _model = await UserService.SaveUser(_model, _currentUser.CurrentCampaignId);
+                    Snackbar.Add($"Ändringar på användaren ({_model.Name}) har sparats.", Severity.Success);
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add("Något gick fel med att spara användaren.", Severity.Error);
+                }
+
+            }
+        }
+    }
+
+    private async Task<bool> CreateAspUser()
+    {
+        var aspUser = Activator.CreateInstance<ApplicationUser>();
+        await UserStore.SetUserNameAsync(aspUser, _model.Email, CancellationToken.None);
+        await ((IUserEmailStore<ApplicationUser>)UserStore).SetEmailAsync(aspUser, _model.Email, CancellationToken.None);
+        var createAspUserResult = await UserManager.CreateAsync(aspUser, _model.Password ?? SystemDefaults.Value.UserPassword);
+
+        if (createAspUserResult.Succeeded)
+        {
+            _model.AspNetUserId = aspUser.Id;
+
+            if (_model.IsVerified)
+            {
+                var code = await UserManager.GenerateEmailConfirmationTokenAsync(aspUser);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                var result = await UserManager.ConfirmEmailAsync(aspUser, code);
+            }
+
+            return true;
+        }
+        else
+        {
+            await ShowIdentityErrorsInSnackbar(createAspUserResult.Errors);
+
+            return false;
+        }
+    }
+
+    private async Task<bool> UpdateAspUser()
+    {
+        var aspUser = await UserStore.FindByIdAsync(_model.AspNetUserId, CancellationToken.None);
+        if (aspUser == null)
+        {
+            if (!await CreateAspUser())
+            {
+                return false;
+            }
+        }
+        if (aspUser.Email != _model.Email)
+        {
+            await UserStore.SetUserNameAsync(aspUser, _model.Email, CancellationToken.None);
+            await ((IUserEmailStore<ApplicationUser>)UserStore).SetEmailAsync(aspUser, _model.Email, CancellationToken.None);
+
+            if (_model.IsVerified)
+            {
+                var code = await UserManager.GenerateEmailConfirmationTokenAsync(aspUser);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                var result = await UserManager.ConfirmEmailAsync(aspUser, code);
+
+                if (!result.Succeeded)
+                {
+                    await ShowIdentityErrorsInSnackbar(result.Errors);
+                    return false;
+                }
+            }            
+        }
+
+        if (!string.IsNullOrEmpty(_model.Password))
+        {
+            var code = await UserManager.GeneratePasswordResetTokenAsync(aspUser);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var result = await UserManager.ResetPasswordAsync(aspUser, code, _model.Password);
+
+            if (!result.Succeeded)
+            {
+                await ShowIdentityErrorsInSnackbar(result.Errors);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private async Task ShowIdentityErrorsInSnackbar(IEnumerable<IdentityError> errors)
+    {
+        foreach (var error in errors)
+        {
+            switch (error.Code)
+            {
+                case "DuplicateEmail":
+                case "DuplicateUserName":
+                    Snackbar.Add("E-post adressen finns redan registrerad.", Severity.Error);
+                    break;
+                case "InvalidUserName":
+                case "InvalidEmail":
+                    Snackbar.Add("De där är inte en e-post adress.", Severity.Error);
+                    break;
+                case "PasswordTooShort":
+                    Snackbar.Add("Lösenordet är för kort.", Severity.Error);
+                    break;
+                case "PasswordRequiresNonAlphanumeric":
+                    Snackbar.Add("Lösenordet måste innehålla specialtecken.", Severity.Error);
+                    break;
+                case "PasswordRequiresDigit":
+                    Snackbar.Add("Lösenordet måste innehålla minst en siffra.", Severity.Error);
+                    break;
+                case "PasswordRequiresLower":
+                    Snackbar.Add("Lösenordet måste innehålla minst en gemen.", Severity.Error);
+                    break;
+                case "PasswordRequiresUpper":
+                    Snackbar.Add("Lösenordet måste innehålla minst en versal.", Severity.Error);
+                    break;
+                default:
+                    Snackbar.Add($"{error.Code}: {error.Description}", Severity.Error);
+                    break;
+            }
         }
     }
 }
