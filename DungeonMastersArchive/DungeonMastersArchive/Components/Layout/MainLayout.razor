@@ -1,13 +1,33 @@
-﻿@inherits LayoutComponentBase
+﻿@using DungeonMastersArchive.Data
+@using DungeonMastersArchive.Models
+@using DungeonMastersArchive.Services
+@using Microsoft.AspNetCore.Identity
+@inherits LayoutComponentBase
 
-<MudThemeProvider />
+@inject IUserService UserService
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject IValueStoreService ValueStoreService
+
+<MudThemeProvider IsDarkMode="true"/>
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">SL-Armour</MudText>
+        <MudSpacer />
+        @if (_availableCampaigns != null && _currentUser != null)
+        {
+
+            <MudSelect Class="pa-2" AdornmentColor="Color.Primary" Label="Aktuell kampanj" T="int" @bind-Value="_currentUser.CurrentCampaignId">
+                @foreach (var campaign in _availableCampaigns)
+                {
+                    <MudSelectItem Value="@campaign.Key">@campaign.Value</MudSelectItem>
+                }
+            </MudSelect>
+        }
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
@@ -28,6 +48,26 @@
 
 @code {
     private bool _drawerOpen = true;
+
+    private Models.User.User _currentUser;
+
+    private List<ValueStoreItem<int, string>> _availableCampaigns;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _currentUser = await UserService.GetCurrentUser();
+
+        if (_currentUser != null)
+        {
+            _availableCampaigns = await ValueStoreService.GetUserCampaigns(_currentUser.Id);
+        }
+    }
 
     private void DrawerToggle()
     {

@@ -1,5 +1,6 @@
 ﻿using DungeonMasterArchiveData.Data;
 using DungeonMastersArchive.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMastersArchive.Services
 {
@@ -10,6 +11,7 @@ namespace DungeonMastersArchive.Services
         Task<List<ValueStoreItem<int, string>>> GetArticles(int campaignId);
         Task<List<ValueStoreItem<int, string>>> GetTags();
         Task<List<ValueStoreItem<int?, string>>> GetRoles();
+        Task<List<ValueStoreItem<int, string>>> GetUserCampaigns(int userId);
     }
     public class ValueStoreService : IValueStoreService
     {
@@ -18,6 +20,22 @@ namespace DungeonMastersArchive.Services
         public ValueStoreService(DMArchiveContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<ValueStoreItem<int, string>>> GetUserCampaigns(int userId)
+        {
+            var result = _context.UserCampaignRoles.Include(m => m.Campaign).Where(m => m.UserId == userId)
+                .Select(m => new ValueStoreItem<int, string>
+                {
+                     Key = m.Campaign.Id,
+                     Value = m.Campaign.CampaignName
+                }).ToList();
+
+            if (result != null && result.Any())
+            {
+                return result;
+            }
+            return null;
         }
 
         public async Task<List<ValueStoreItem<int, string>>> GetTags()
