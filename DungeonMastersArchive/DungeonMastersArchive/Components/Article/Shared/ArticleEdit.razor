@@ -8,7 +8,7 @@
 @inject IImageService ImageService
 @inject IUserService UserService
 
-@if (_model != null)
+@if (_model != null && _user != null)
 {
 
     <MudForm @ref="_form">
@@ -43,7 +43,6 @@
                             </MudStack>
                         }
                         <br />
-                        @* <MudTextField class="pa-2" T="string" @bind-Value="_model.ArticleText" Label="Artikeltext" Variant="Variant.Outlined" Lines="5" /> *@
                         <MudExRichTextEdit Disabled="@_model.IsDeleted" @ref="@_richTextEditor"
                         Height="444"
                         Class="m-2"
@@ -225,6 +224,7 @@
     public int? ArticleTypeId { get; set; }
 
     private Models.Article.ArticleEdit _model;
+    private Models.User.User _user;
 
     private List<Models.ValueStoreItem<int, string>> _articleTypes;
     private List<Models.ValueStoreItem<int, string>> _months;
@@ -251,10 +251,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await UserService.GetCurrentUser();
+        _user = await UserService.GetCurrentUser();
+        if (_user != null)
+        {
+            _articleValueStore = await ValueStoreService.GetArticles(_user.CurrentCampaignId);
+        }
         _articleTypes = await ValueStoreService.GetArticleTypes();
         _months = await ValueStoreService.GetGenericValueStoreGroup<int, string>("months");
-        _articleValueStore = await ValueStoreService.GetArticles(user.CurrentCampaignId);
+        
         _tagsValueStore = await ValueStoreService.GetTags();
     }
 

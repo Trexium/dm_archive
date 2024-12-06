@@ -6,5 +6,6 @@
         public string Name { get; set; }
         public int CurrentCampaignId { get; set; }
         public string AspUserId { get; set; }
+        public int CurrentRoleId { get; set; }
     }
 }

@@ -9,7 +9,7 @@
 @inject IUserStore<ApplicationUser> UserStore
 @inject IValueStoreService ValueStoreService
 
-<MudThemeProvider IsDarkMode="true"/>
+<MudThemeProvider IsDarkMode="true" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -21,7 +21,7 @@
         @if (_availableCampaigns != null && _currentUser != null)
         {
 
-            <MudSelect Class="pa-2" AdornmentColor="Color.Primary" Label="Aktuell kampanj" T="int" @bind-Value="_currentUser.CurrentCampaignId">
+            <MudSelect Class="pa-2" AdornmentColor="Color.Primary" Label="Aktuell kampanj" T="int" @bind-Value="_currentUser.CurrentCampaignId" OnClose="ChangeCampaign">
                 @foreach (var campaign in _availableCampaigns)
                 {
                     <MudSelectItem Value="@campaign.Key">@campaign.Value</MudSelectItem>
@@ -72,6 +72,24 @@
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task ChangeCampaign()
+    {
+        if (await UserService.SetCurrentCampaign(_currentUser.Id, _currentUser.CurrentCampaignId))
+        {
+            _currentUser = await UserService.GetCurrentUser();
+            var aspUser = await UserStore.FindByIdAsync(_currentUser.AspUserId, CancellationToken.None);
+            var rolesToRemove = await UserManager.GetRolesAsync(aspUser);
+            await UserManager.RemoveFromRolesAsync(aspUser, rolesToRemove);
+            await UserManager.AddToRoleAsync(aspUser, _currentUser.CurrentRoleId.ToString());
+            var claimsToRemove = await UserManager.GetClaimsAsync(aspUser);
+            await UserManager.AddClaimAsync(aspUser, new System.Security.Claims.Claim("Campaign", _currentUser.CurrentCampaignId.ToString()));
+        }
+        else
+        {
+
+        }
     }
 
 }

@@ -1,4 +1,5 @@
 ﻿using DungeonMasterArchiveData.Data;
+using DungeonMasterArchiveData.Models;
 using DungeonMastersArchive.Components.Account;
 using DungeonMastersArchive.Data;
 using DungeonMastersArchive.Models;
@@ -24,6 +25,8 @@ namespace DungeonMastersArchive.Services
         Task<bool> DeleteUser(int userId);
         Task<bool> UndeleteUser(int userId);
         Task<EditUser> SaveUser(EditUser user, int campaignId);
+        Task<bool> SetCurrentCampaign(int userId, int campaignId);
+        Task<bool> AddUserToCampaign(int userId, int campaignId, int roleId, bool setAsCurrent = false);
 
     }
     public class UserService : IUserService
@@ -41,6 +44,54 @@ namespace DungeonMastersArchive.Services
             _userManager = userManager;
             _userStore = userStore;
             _systemDefaults = systemDefaults.Value;
+        }
+
+        public async Task<bool> SetCurrentCampaign(int userId, int campaignId)
+        {
+            try
+            {
+                var dbUser = _context.ArchiveUsers.FirstOrDefault(m => m.Id == userId);
+                if (dbUser != null)
+                {
+                    dbUser.CurrentCampaignId = campaignId;
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
+        }
+
+        public async Task<bool> AddUserToCampaign(int userId, int campaignId, int roleId, bool setAsCurrent = false)
+        {
+            try
+            {
+                var alreadyOnCampaign = _context.UserCampaignRoles.Where(m => m.UserId == userId && m.CampaignId == campaignId).Any();
+                if (!alreadyOnCampaign)
+                {
+                    var userCampaign = new UserCampaignRole();
+                    userCampaign.UserId = userId;
+                    userCampaign.CampaignId = campaignId;
+                    userCampaign.RoleId = roleId;
+                    _context.UserCampaignRoles.Add(userCampaign);
+                    await _context.SaveChangesAsync();
+
+                    if (setAsCurrent)
+                    {
+                        await SetCurrentCampaign(userId, campaignId);
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
         }
 
         public async Task<EditUser> GetEditUser(int userId, int campaignId)
