@@ -32,7 +32,6 @@ else
                     <MudItem md="6"><MudTextField Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.Password" Label="Lösenord" Variant="Variant.Outlined" InputType="InputType.Password"></MudTextField></MudItem>
                 </MudStack>
                 <MudStack>
-
                     <MudSelect Required RequiredError="En roll måste sättas på användaren." T="int?" @bind-Value="_model.RoleId" Disabled="@_model.IsDeleted" Class="pa-2" Label="Behörighet">
                         @foreach (var role in _roles)
                         {
@@ -40,7 +39,6 @@ else
                         }
                     </MudSelect>
                 </MudStack>
-
             </MudPaper>
             <MudPaper Class=" pa-6 ma-2" Elevation="3">
                 <MudButtonGroup Vertical="true">

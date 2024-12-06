@@ -10,52 +10,48 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>Logga in</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Log in</MudText>
 
-<MudGrid>
-    <MudItem md="6">
-        <StatusMessage Message="@errorMessage" />
-        <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
-            <DataAnnotationsValidator />
+<MudStack>
+    <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+        <MudStack Row="true">
+            <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
+                <MudText Typo="Typo.h2" GutterBottom="true">Logga in</MudText>
+                <StatusMessage Message="@errorMessage" />
+                <DataAnnotationsValidator />
+                <MudText GutterBottom="true" Typo="Typo.body1">Använd ditt SLArmour-konto för att logga in.</MudText>
 
-            <MudText GutterBottom="true" Typo="Typo.body1">Use a local account to log in.</MudText>
+                <MudGrid>
+                    <MudItem md="12">
+                        <MudStaticTextField For="@(() => Input.Email)" @bind-Value="Input.Email"
+                                            Label="E-post" Placeholder="name@slarmour.se"
+                                            UserAttributes="@(new() { { "autocomplete", "true" }, { "aria-required", "true" } } )" />
+                    </MudItem>
+                    <MudItem md="12">
+                        <MudStaticTextField For="@(() => Input.Password)" @bind-Value="Input.Password"
+                                            Label="Lösenord" InputType="InputType.Password" Placeholder="password"
+                                            UserAttributes="@(new() { { "autocomplete", "current-password" }, { "aria-required", "true" } } )" />
+                    </MudItem>
+                    <MudItem md="12">
+                        <MudStaticCheckBox For="@(() => Input.RememberMe)" @bind-Value="Input.RememberMe">Kom ihåg mig</MudStaticCheckBox>
+                    </MudItem>
+                    <MudItem md="12">
 
-            <MudGrid>
-                <MudItem md="12">
-                    <MudStaticTextField For="@(() => Input.Email)" @bind-Value="Input.Email" 
-                        Label="Email" Placeholder="name@example.com" 
-                        UserAttributes="@(new() { { "autocomplete", "true" }, { "aria-required", "true" } } )" />
-                </MudItem>
-                <MudItem md="12">
-                    <MudStaticTextField For="@(() => Input.Password)" @bind-Value="Input.Password" 
-                        Label="Password" InputType="InputType.Password" Placeholder="password" 
-                        UserAttributes="@(new() { { "autocomplete", "current-password" }, { "aria-required", "true" } } )" />
-                </MudItem>
-                <MudItem md="12">
-                    <MudStaticCheckBox For="@(() => Input.RememberMe)" @bind-Value="Input.RememberMe">Remember me</MudStaticCheckBox>
-                </MudItem>
-                <MudItem md="12">
-                    <MudStaticButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" FormAction="FormAction.Submit">Log in</MudStaticButton>
-                </MudItem>
-            </MudGrid>
-        </EditForm>
+                    </MudItem>
+                </MudGrid>
 
-        <MudGrid Class="mt-4">
-            <MudItem md="12">
-                <MudLink Href="Account/ForgotPassword">Forgot your password?</MudLink><br />
-                <MudLink Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register as a new user</MudLink><br />
-                <MudLink Href="Account/ResendEmailConfirmation">Resend email confirmation</MudLink>
-            </MudItem>
-        </MudGrid>
-    </MudItem>
-    <MudItem md="6">
-        <MudText GutterBottom="true" Typo="Typo.body1">Use another service to log in.</MudText>
-
-        <ExternalLoginPicker />
-    </MudItem>
-</MudGrid>
+            </MudPaper>
+            <MudPaper Class=" pa-6 ma-2" Elevation="3">
+                <MudButtonGroup Vertical="true">
+                    <MudButton Href="Account/ForgotPassword" StartIcon="@Icons.Material.Filled.Password">Glömt ditt lösenord?</MudButton>
+                    <MudButton Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" StartIcon="@Icons.Material.Filled.PersonAdd">Registera konto</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Login">Logga in</MudButton>
+                </MudButtonGroup>
+            </MudPaper>
+        </MudStack>
+    </EditForm>
+</MudStack>
 
 @code {
     private string? errorMessage;
@@ -115,7 +111,7 @@
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
-        [Display(Name = "Remember me?")]
+        [Display(Name = "Kom ihåg mig?")]
         public bool RememberMe { get; set; }
     }
 }
