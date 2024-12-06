@@ -16,7 +16,7 @@ namespace DungeonMastersArchive.Services
         Task<ArticleEdit> GetArticleEdit(int id);
         Task<Article> GetArticle(int id);
         Task<ArticleEdit> SaveArticle(ArticleEdit article);
-        Task<List<ArticleMini>> GetArticles();
+        Task<List<ArticleMini>> GetArticles(int campaignId);
         Task<bool> DeleteArticle(int id);
         Task RemoveImageFromArticle(int imageId);
         Task<Dictionary<string, List<ArticleLink>>> GetArticleLinks(int articleId);
@@ -330,10 +330,10 @@ namespace DungeonMastersArchive.Services
             return model;
         }
 
-        public async Task<List<ArticleMini>> GetArticles()
+        public async Task<List<ArticleMini>> GetArticles(int campaignId)
         {
-            var user = await _userService.GetCurrentUser();
-            var dbArticles = _context.Articles.Include(m => m.ArticleType).Where(m => m.CampaignId == user.CurrentCampaignId && !m.IsDeleted).ToList();
+            
+            var dbArticles = _context.Articles.Include(m => m.ArticleType).Where(m => m.CampaignId == campaignId && !m.IsDeleted).ToList();
             var articles = new List<ArticleMini>();
             foreach (var dbArticle in dbArticles)
             {

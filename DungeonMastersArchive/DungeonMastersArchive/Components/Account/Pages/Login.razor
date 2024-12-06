@@ -12,12 +12,12 @@
 
 <PageTitle>Logga in</PageTitle>
 
-
+<MudText Typo="Typo.h3" GutterBottom="true">Logga in</MudText>
 <MudStack>
     <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
         <MudStack Row="true">
             <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
-                <MudText Typo="Typo.h2" GutterBottom="true">Logga in</MudText>
+                
                 <StatusMessage Message="@errorMessage" />
                 <DataAnnotationsValidator />
                 <MudText GutterBottom="true" Typo="Typo.body1">Använd ditt SLArmour-konto för att logga in.</MudText>

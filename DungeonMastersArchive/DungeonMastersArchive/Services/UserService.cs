@@ -21,10 +21,10 @@ namespace DungeonMastersArchive.Services
     {
         Task<User> GetCurrentUser();
         Task<List<UserMini>> GetUsers(int? campaignId);
-        Task<EditUser> GetEditUser(int userId, int campaignId);
+        Task<UserEdit> GetEditUser(int userId, int campaignId);
         Task<bool> DeleteUser(int userId);
         Task<bool> UndeleteUser(int userId);
-        Task<EditUser> SaveUser(EditUser user, int campaignId);
+        Task<UserEdit> SaveUser(UserEdit user, int campaignId);
         Task<bool> SetCurrentCampaign(int userId, int campaignId);
         Task<bool> AddUserToCampaign(int userId, int campaignId, int roleId, bool setAsCurrent = false);
 
@@ -94,7 +94,7 @@ namespace DungeonMastersArchive.Services
             return false;
         }
 
-        public async Task<EditUser> GetEditUser(int userId, int campaignId)
+        public async Task<UserEdit> GetEditUser(int userId, int campaignId)
         {
             var archiveUser = _context.ArchiveUsers
                 .Include(m => m.AspNetUser)
@@ -103,7 +103,7 @@ namespace DungeonMastersArchive.Services
 
             if (archiveUser != null)
             {
-                var user = new EditUser
+                var user = new UserEdit
                 {
                     Id = archiveUser.Id,
                     Email = archiveUser.AspNetUser.Email,
@@ -194,7 +194,7 @@ namespace DungeonMastersArchive.Services
             }
         }
 
-        public async Task<EditUser> SaveUser(EditUser user, int campaignId)
+        public async Task<UserEdit> SaveUser(UserEdit user, int campaignId)
         {
             DataModels.ArchiveUser dbUser;
             if (!user.Id.HasValue)

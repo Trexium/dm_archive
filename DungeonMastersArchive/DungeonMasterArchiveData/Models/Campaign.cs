@@ -17,11 +17,15 @@ public partial class Campaign
 
     public string CampaignName { get; set; } = null!;
 
+    public int? OwnerId { get; set; }
+
     public virtual ICollection<ArticleImage> ArticleImages { get; set; } = new List<ArticleImage>();
 
     public virtual ICollection<Article> Articles { get; set; } = new List<Article>();
 
     public virtual ArchiveUser? CreatedByNavigation { get; set; }
+
+    public virtual ArchiveUser? Owner { get; set; }
 
     public virtual ArchiveUser? UpdateByNavigation { get; set; }
 

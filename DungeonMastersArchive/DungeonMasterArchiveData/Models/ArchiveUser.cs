@@ -27,6 +27,8 @@ public partial class ArchiveUser
 
     public virtual ICollection<Campaign> CampaignCreatedByNavigations { get; set; } = new List<Campaign>();
 
+    public virtual ICollection<Campaign> CampaignOwners { get; set; } = new List<Campaign>();
+
     public virtual ICollection<Campaign> CampaignUpdateByNavigations { get; set; } = new List<Campaign>();
 
     public virtual ICollection<UserCampaignRole> UserCampaignRoles { get; set; } = new List<UserCampaignRole>();

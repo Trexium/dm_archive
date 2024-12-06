@@ -52,7 +52,10 @@ public partial class DMArchiveContext : DbContext
 
     public virtual DbSet<UserCampaignRole> UserCampaignRoles { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=mssql12.unoeuro.com,1433;Database=slarmour_se_db_dm_archive;User Id=slarmour_se;Password=3GBmfk296w4nEprg5eFb;TrustServerCertificate=True;");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccessType>(entity =>
@@ -278,6 +281,10 @@ public partial class DMArchiveContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CampaignCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .HasConstraintName("FK__Campaign__Create__29E1370A");
+
+            entity.HasOne(d => d.Owner).WithMany(p => p.CampaignOwners)
+                .HasForeignKey(d => d.OwnerId)
+                .HasConstraintName("FK__Campaign__OwnerI__2B947552");
 
             entity.HasOne(d => d.UpdateByNavigation).WithMany(p => p.CampaignUpdateByNavigations)
                 .HasForeignKey(d => d.UpdateBy)

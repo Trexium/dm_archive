@@ -1,6 +1,6 @@
 ﻿namespace DungeonMastersArchive.Models.User
 {
-    public class EditUser
+    public class UserEdit
     {
         public int? Id { get; set; }
         public string Name { get; set; }

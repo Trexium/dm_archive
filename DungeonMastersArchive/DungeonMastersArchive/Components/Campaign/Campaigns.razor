@@ -1,0 +1,65 @@
+﻿@page "/campaigns"
+@using DungeonMastersArchive.Models.Campaign
+@using DungeonMastersArchive.Services
+
+@inject IUserService UserService
+@inject ICampaignService CampaignService
+
+
+<MudText Typo="Typo.h3">Kampanjer</MudText>
+
+@if (_model == null)
+{
+
+}
+else
+{
+    <MudStack Row="true">
+        <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
+            <MudTable T="CampaignMini" Items="@_model">
+                <HeaderContent>
+                    <MudTh>Kampanj</MudTh>
+                    <MudTh>Ägare</MudTh>
+                    <MudTh>Antal spelare</MudTh>
+                    <MudTh>Åtgärder</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Kampanj">@context.Name</MudTd>
+                    <MudTd DataLabel="Ägare">@context.OwnerName</MudTd>
+                    <MudTd DataLabel="Antal spelare">@context.NumberOfUsers</MudTd>
+                    <MudTd DataLabel="Åtgärder">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@($"/campaign-edit/{context.Id}")" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+        <MudPaper Class=" pa-6 ma-2" Elevation="3">
+            <MudButtonGroup Vertical="true">
+                <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/edit-campaign">Ny Kampanj</MudButton>
+            </MudButtonGroup>
+        </MudPaper>
+    </MudStack>
+}
+
+@code {
+    private List<CampaignMini> _model;
+    private Models.User.User _currentUser;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _currentUser = await UserService.GetCurrentUser();
+        if (_currentUser != null)
+        {
+            _model = await CampaignService.GetCampaigns(_currentUser.CurrentCampaignId);
+        }
+    }
+}

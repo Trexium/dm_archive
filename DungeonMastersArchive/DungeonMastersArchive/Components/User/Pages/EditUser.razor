@@ -64,7 +64,7 @@ else
     [Parameter]
     public int? Id { get; set; }
 
-    private Models.User.EditUser _model;
+    private Models.User.UserEdit _model;
     private Models.User.User _currentUser;
     private List<Models.ValueStoreItem<int?, string>> _roles;
 
@@ -86,7 +86,7 @@ else
         }
         else
         {
-            _model = new Models.User.EditUser();
+            _model = new Models.User.UserEdit();
             _model.IsVerified = true;
         }
     }
@@ -207,7 +207,7 @@ else
                     await ShowIdentityErrorsInSnackbar(result.Errors);
                     return false;
                 }
-            }            
+            }
         }
 
         if (!string.IsNullOrEmpty(_model.Password))

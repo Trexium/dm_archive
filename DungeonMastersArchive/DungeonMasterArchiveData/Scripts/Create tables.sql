@@ -46,7 +46,8 @@ create table Campaign
 	CreatedBy int foreign key references ArchiveUser(Id),
 	UpdatedAt datetime null,
 	UpdateBy int foreign key references ArchiveUser(Id),
-	CampaignName nvarchar(255) not null
+	CampaignName nvarchar(255) not null,
+	OwnerId int null foreign key references ArchiveUser(Id)
 )
 
 create table ArticleType

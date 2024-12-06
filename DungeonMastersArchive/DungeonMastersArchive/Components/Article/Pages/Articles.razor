@@ -4,60 +4,69 @@
 
 @inject IArticleService ArticleService
 @inject ISnackbar Snackbar
+@inject IUserService UserService
 
 <MudText Typo="Typo.h3">Artiklar</MudText>
 
-<div class="d-flex flex-row">
-    <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
-        <MudTable T="ArticleMini" Items="@_articles">
-            <HeaderContent>
-                <MudTh>Artikel</MudTh>
-                <MudTh>Typ</MudTh>
-                <MudTh>Publicerad?</MudTh>
-                <MudTh>Åtgärder</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Artikel">@context.ArticleName</MudTd>
-                <MudTd DataLabel="Typ">@context.ArticleType</MudTd>
-                <MudTd DataLabel="Publicerad?">
-                    @if (context.IsPublished)
-                    {
-                        <MudChip T="string" Icon="@Icons.Material.Filled.Public" Color="Color.Success">Ja</MudChip>
-                    }
-                    else 
-                    {
-                        <MudChip T="string" Icon="@Icons.Material.Filled.PublicOff">Nej</MudChip>
-                    }
-                </MudTd>
-                <MudTd DataLabel="Åtgärder">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@GetEditLink(context.Id)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteArticle(context.Id)" />
-                </MudTd>
-            </RowTemplate>
-            <PagerContent>
-                <MudTablePager />
-            </PagerContent>
-        </MudTable>
-    </MudPaper>
+@if (_model == null)
+{
+
+}
+else
+{
+    <div class="d-flex flex-row">
+        <MudPaper Class="flex-grow-1 pa-16 ma-2" Elevation="3">
+            <MudTable T="ArticleMini" Items="@_model">
+                <HeaderContent>
+                    <MudTh>Artikel</MudTh>
+                    <MudTh>Typ</MudTh>
+                    <MudTh>Publicerad?</MudTh>
+                    <MudTh>Åtgärder</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Artikel">@context.ArticleName</MudTd>
+                    <MudTd DataLabel="Typ">@context.ArticleType</MudTd>
+                    <MudTd DataLabel="Publicerad?">
+                        @if (context.IsPublished)
+                        {
+                            <MudChip T="string" Icon="@Icons.Material.Filled.Public" Color="Color.Success">Ja</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Icon="@Icons.Material.Filled.PublicOff">Nej</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Åtgärder">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Href="@GetEditLink(context.Id)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteArticle(context.Id)" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
 
 
-    <MudPaper Class=" pa-6 ma-2" Elevation="3">
-        <MudButtonGroup Vertical="true">
-            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/edit-article">Ny Artikel</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/">En knapp</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/">En knapp med längre text</MudButton>
-        </MudButtonGroup>
-    </MudPaper>
-</div>
+        <MudPaper Class=" pa-6 ma-2" Elevation="3">
+            <MudButtonGroup Vertical="true">
+                <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/edit-article">Ny Artikel</MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/">En knapp</MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.PostAdd" Href="/">En knapp med längre text</MudButton>
+            </MudButtonGroup>
+        </MudPaper>
+    </div>
+}
+
 
 
 
 
 
 @code {
-    private List<ArticleMini> _articles;
+    private List<ArticleMini> _model;
+    private Models.User.User _currentUser;
 
-    
     protected override async Task OnInitializedAsync()
     {
 
@@ -65,7 +74,12 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _articles = await ArticleService.GetArticles();
+        _currentUser = await UserService.GetCurrentUser();
+        if (_currentUser != null)
+        {
+            _model = await ArticleService.GetArticles(_currentUser.CurrentCampaignId);
+        }
+
     }
 
     private string GetEditLink(int id)
