@@ -1,0 +1,48 @@
+﻿@page "/edit-campaign/{id:int?}"
+@using DungeonMastersArchive.Models.Campaign
+@using DungeonMastersArchive.Services
+@using Microsoft.AspNetCore.Authorization
+
+@inject ISnackbar Snackbar
+@inject ICampaignService CampaignService
+@inject IValueStoreService ValueStoreService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize(Policy = "Admin")]
+
+@if (_model == null)
+{
+
+}
+else
+{
+
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private CampaignEdit _model;
+
+    private MudForm _form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            _model = await CampaignService.GetCampaignEdit(Id.Value);
+        }
+        else
+        {
+            _model = new CampaignEdit();
+            
+        }
+    }
+}

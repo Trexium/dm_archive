@@ -1,15 +1,497 @@
 ﻿@page "/edit-article/{id:int?}"
 @using DungeonMastersArchive.Components.Article.Shared
+@using DungeonMastersArchive.Models.Article
+@using DungeonMastersArchive.Services
+
+@inject ISnackbar Snackbar
+@inject IValueStoreService ValueStoreService
+@inject IArticleService ArticleService
+@inject IImageService ImageService
+@inject IUserService UserService
 
 
+@if (_model != null && _user != null)
+{
+    <MudForm @ref="_form">
+        <MudStack Row="true">
+            <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
+                <MudTabs Centered="true">
+                    <MudTabPanel Text="Grundläggande" Icon="@Icons.Material.Filled.Article">
+                        <br />
+                        <MudStack Row="true">
+                            <MudTextField Disabled="@_model.IsDeleted" Class="pa-2" T="string" @bind-Value="_model.ArticleName" Label="Titel" Variant="Variant.Outlined"></MudTextField>
+                            @if (!ArticleTypeId.HasValue)
+                            {
+                                <MudSelect Disabled="@_model.IsDeleted" class="pa-2" Label="Artikeltyp" T="string" @bind-Value="_model.ArticleTypeId" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en typ.">
+                                    @foreach (var item in _articleTypes.OrderBy(m => m.Key))
+                                    {
+                                        <MudSelectItem Value="@item.Key.ToString()">@item.Value</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            }
+                        </MudStack>
+                        @if (_model.ArticleTypeId == "5")
+                        {
+                            <MudStack Row="true">
+                                <MudNumericField Disabled="@_model.IsDeleted" Class="d-flex pa-2" Label="År" T="Nullable<int>" Min="341" Max="500" @bind-Value="_model.TimelineYear" HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha ett år."></MudNumericField>
+                                <MudSelect Disabled="@_model.IsDeleted" class="d-flex pa-2" Label="Månad" T="string" @bind-Value="_model.TimelineMonthStringId" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en månad.">
+                                    @foreach (var item in _months.OrderBy(m => m.Key))
+                                    {
+                                        <MudSelectItem Value="@item.Key.ToString()">@item.Value</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudNumericField Disabled="@_model.IsDeleted" Class="d-flex pa-2" Label="Dag" T="Nullable<int>" Min="1" Max="30" @bind-Value="_model.TimelineDay" HideSpinButtons="true" Variant="Variant.Outlined" Required RequiredError="Artikeln måste ha en dag."></MudNumericField>
+                            </MudStack>
+                        }
+                        <br />
+                        <MudExRichTextEdit Disabled="@_model.IsDeleted" @ref="@_richTextEditor"
+                                           Height="444"
+                                           Class="m-2"
+                                           Placeholder="Skriv din artikeltext..."
+                                           @bind-Value="_model.ArticleText">
+
+                        </MudExRichTextEdit>
 
 
-<ArticleEdit Id="@Id" />
+                    </MudTabPanel>
+                    <MudTabPanel Text="Bilder" Icon="@Icons.Material.Filled.Image">
+                        <br />
+                        @if (_model.Images != null && _model.Images.Any())
+                        {
+                            <MudTable T="ArticleImageMetadata" Items="_model.Images">
+                                <HeaderContent>
+                                    <MudTh>Bild</MudTh>
+                                    <MudTh>Titel</MudTh>
+                                    <MudTh>Åtgärder</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Bild">
+                                        <MudImage ObjectFit="ObjectFit.ScaleDown" Src="@ImageService.GetImageUrl(context)" Height="50" />
+                                    </MudTd>
+                                    <MudTd DataLabel="Titel">@context.Title</MudTd>
+                                    <MudTd DataLabel="Åtgärder"><MudIconButton Disabled="@_model.IsDeleted" Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteImage(context)"></MudIconButton></MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        <MudStack Style="width: 100%">
+                            <MudFileUpload Disabled="@_model.IsDeleted" T="IReadOnlyList<IBrowserFile>"
+                                           @ref="@_fileUpload"
+                                           OnFilesChanged="OnInputFileChanged"
+                                           AppendMultipleFiles
+                                           Hidden="@false"
+                                           InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                                           InputStyle="opacity:0"
+                                           Accept="@ImageService.AcceptedExtensions"
+                                           tabindex="-1"
+                                           @ondrop="@ClearDragClass"
+                                           @ondragenter="@SetDragClass"
+                                           @ondragleave="@ClearDragClass"
+                                           @ondragend="@ClearDragClass">
+                                <ActivatorContent>
+                                    <MudPaper Height="300px"
+                                              Outlined="true"
+                                              Class="@_dragClass">
+                                        <MudText Typo="Typo.h6">
+                                            @_fileUploadDisplayText
+                                        </MudText>
+                                        @foreach (var file in _files?.Select(file => file.Name) ?? Enumerable.Empty<string>())
+                                        {
+                                            <MudChip T="string" Color="Color.Dark" Text="@file" />
+                                        }
+                                    </MudPaper>
+                                </ActivatorContent>
+                            </MudFileUpload>
+                            <MudToolBar Gutters="@false"
+                                        Class="relative d-flex justify-end gap-4">
+                                <MudButton Color="Color.Primary"
+                                           OnClick="@OpenFilePickerAsync"
+                                           Disabled="@_model.IsDeleted"
+                                           Variant="Variant.Filled">
+                                    Välj en fil
+                                </MudButton>
+                                <MudButton Color="Color.Error"
+                                           Disabled="@(!_files.Any() || _model.IsDeleted)"
+                                           OnClick="@ClearFileUploadAsync"
+                                           Variant="Variant.Filled">
+                                    Rensa
+                                </MudButton>
+                            </MudToolBar>
+                        </MudStack>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Länkar" Icon="@Icons.Material.Filled.Link">
+                        <br />
+                        @if (_model.ChildLinks != null)
+                        {
+                            <MudTable T="ArticleLink" Items="_model.ChildLinks" Dense="true">
+                                <HeaderContent>
+                                    <MudTh>Artikel</MudTh>
+                                    <MudTh>Gruppering</MudTh>
+                                    <MudTh>Åtgärder</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Artikel"><MudLink Href="@($"/edit-article/{context.ArticleId.ToString()}")" Target="_blank">@context.ArticleName</MudLink></MudTd>
+                                    <MudTd DataLabel="Gruppering">@context.GroupName</MudTd>
+                                    <MudTd DataLabel="Åtgärd"><MudIconButton Disabled="@_model.IsDeleted" Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteLink(context)"></MudIconButton></MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        <br />
+                        <MudStack Row="true">
+                            <MudAutocomplete Disabled="@_model.IsDeleted" @ref="_linkAutoComplete" T="Models.ValueStoreItem<int, string>" Label="Välj artikel att länka till" SearchFunc="SearchArticleValueStore" ToStringFunc="@(e=> e==null?null : $"{e.Value}")" ShowProgressIndicator="true" Clearable="true" ValueChanged="LinkAutoCompleteValueChanged">
+                                <BeforeItemsTemplate>
+
+                                </BeforeItemsTemplate>
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center">Inga artiklar hittades.</MudText>
+                                </NoItemsTemplate>
+                            </MudAutocomplete>
+                            <MudTextField Disabled="@_model.IsDeleted" Label="Gruppering" @bind-Value="_linkGroupName" />
+                            <MudIconButton Icon="@Icons.Material.Filled.AddLink" OnClick="() => AddChildLink()" Disabled="@_addLinkButtonDisabled">Lägg till</MudIconButton>
+                        </MudStack>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Taggar" Icon="@Icons.Material.Filled.Tag">
+                        <br />
+                        @if (_model.Tags != null)
+                        {
+                            <MudTable T="ArticleTag" Items="_model.Tags" Dense="true">
+                                <HeaderContent>
+                                    <MudTh>Tag</MudTh>
+                                    <MudTh>Åtgärder</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Tag">
+                                        <MudText Class="d-flex align-center justify-start">
+                                            <MudIcon Icon="@Icons.Material.Filled.Tag" />@context.Tag
+                                        </MudText>
+                                    </MudTd>
+                                    <MudTd DataLabel="Åtgärd"><MudIconButton Disabled="@_model.IsDeleted" Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteTag(context)"></MudIconButton></MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        <br />
+                        <MudAutocomplete Disabled="@_model.IsDeleted" @ref="_tagAutoComplete" T="Models.ValueStoreItem<int, string>" Label="Välj eller hitta på en tag" SearchFunc="SearchTagValueStore" ToStringFunc="@(e=> e==null?null : $"{e.Value}")" ShowProgressIndicator="true" Clearable="true" ValueChanged="AddArticleTag">
+                            <BeforeItemsTemplate>
+
+                            </BeforeItemsTemplate>
+                            <NoItemsTemplate>
+                                @if (!string.IsNullOrEmpty(_tagAutoComplete.Text) && _tagAutoComplete.Text.Length >= 3)
+                                {
+                                    <div class=" d-flex flex-grow-1 flex-wrap justify-center align-center">
+                                        <MudButtonGroup Class="align-center">
+                                            <MudText Disabled="@_model.IsDeleted">@_tagAutoComplete.Text</MudText>
+                                            <MudIconButton Disabled="@_model.IsDeleted" Icon="@Icons.Material.Filled.NewLabel" OnClick="() => NewArticleTag(_tagAutoComplete.Text)"></MudIconButton>
+                                        </MudButtonGroup>
+                                    </div>
+                                }
+                                <MudText Align="Align.Center">Inga artiklar hittades.</MudText>
+                            </NoItemsTemplate>
+                        </MudAutocomplete>
+                    </MudTabPanel>
+                </MudTabs>
+            </MudPaper>
+            <MudPaper Class=" pa-6 ma-2" Elevation="3">
+                <MudButtonGroup Vertical="true">
+                    @if (_model.IsPublished)
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.PublicOff" OnClick="Unpublish" Disabled="@_model.IsDeleted">Avpublicera</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.Public" OnClick="Publish" Disabled="@_model.IsDeleted">Publicera</MudButton>
+                    }
+                    @if (_model.IsDeleted)
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="UndeleteArticle">Trolla tillbaka</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteArticle">Tabort</MudButton>
+                    }
 
 
+                    <MudButton OnClick="SaveClick" StartIcon="@Icons.Material.Filled.Save" Disabled="@_model.IsDeleted">Spara</MudButton>
+                </MudButtonGroup>
+            </MudPaper>
+        </MudStack>
+    </MudForm>
+
+}
 
 @code {
     [Parameter]
     public int? Id { get; set; }
+
+    [Parameter]
+    public int? ArticleTypeId { get; set; }
+
+    private Models.Article.ArticleEdit _model;
+    private Models.User.User _user;
+
+    private List<Models.ValueStoreItem<int, string>> _articleTypes;
+    private List<Models.ValueStoreItem<int, string>> _months;
+    private List<Models.ValueStoreItem<int, string>> _articleValueStore;
+    private List<Models.ValueStoreItem<int, string>> _tagsValueStore;
+
+    private MudForm _form;
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+    private MudAutocomplete<Models.ValueStoreItem<int, string>> _linkAutoComplete;
+    private MudAutocomplete<Models.ValueStoreItem<int, string>> _tagAutoComplete;
+    private MudExRichTextEdit _richTextEditor;
+
+    private string _fileUploadDisplayText = "Dra och släpp bilder här eller klicka";
+    private bool _disableFileUpload = false;
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private readonly List<IBrowserFile> _files = new();
+    private string _linkGroupName = string.Empty;
+    private bool _addLinkButtonDisabled = true;
+
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await UserService.GetCurrentUser();
+        if (_user != null)
+        {
+            _articleValueStore = await ValueStoreService.GetArticles(_user.CurrentCampaignId);
+        }
+        _articleTypes = await ValueStoreService.GetArticleTypes();
+        _months = await ValueStoreService.GetGenericValueStoreGroup<int, string>("months");
+
+        _tagsValueStore = await ValueStoreService.GetTags();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            _model = await ArticleService.GetArticleEdit(Id.Value);
+        }
+        else
+        {
+            _model = new Models.Article.ArticleEdit
+            {
+
+            };
+            _fileUploadDisplayText = "Spara innan du börjar ladda upp bilder";
+            _disableFileUpload = true;
+        }
+
+        if (_model.TimelineYear == 0)
+        {
+            _model.TimelineYear = 386;
+        }
+        if (_model.TimelineDay == 0)
+        {
+            _model.TimelineDay = 1;
+        }
+    }
+
+    private async Task Publish()
+    {
+        await ArticleService.Publish(Id.Value);
+        _model.IsPublished = true;
+    }
+
+    private async Task Unpublish()
+    {
+        await ArticleService.Unpublish(Id.Value);
+        _model.IsPublished = false;
+    }
+
+    private async Task DeleteArticle()
+    {
+        await ArticleService.DeleteArticle(Id.Value);
+        _model.IsDeleted = true;
+        _addLinkButtonDisabled = true;
+    }
+
+    private async Task UndeleteArticle()
+    {
+        await ArticleService.UndeleteArticle(Id.Value);
+        _model.IsDeleted = false;
+    }
+
+    private async Task SaveClick()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            if (_files.Any())
+            {
+                var articleImages = new List<ArticleImageMetadata>();
+                foreach (var file in _files)
+                {
+                    articleImages.Add(await ImageService.UploadFile(file, 2));
+                }
+                if (_model.Images == null)
+                {
+                    _model.Images = new List<ArticleImageMetadata>();
+                }
+                _model.Images.AddRange(articleImages);
+            }
+            if (ArticleTypeId.HasValue)
+            {
+                _model.ArticleTypeId = ArticleTypeId.Value.ToString();
+            }
+            if (!string.IsNullOrEmpty(_model.TimelineMonthStringId))
+            {
+                _model.TimelineMonthId = int.Parse(_model.TimelineMonthStringId);
+            }
+            try
+            {
+                _model = await ArticleService.SaveArticle(_model);
+                await ClearFileUploadAsync();
+                Snackbar.Add($"Artikeln {_model.ArticleName} har sparats.", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Något gick fel när artikeln skulle sparas. Testa igen, har troligen med bilderna att göra. Test tabort några och spara igen.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task ClearFileUploadAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _files.Clear();
+        ClearDragClass();
+    }
+
+    private Task OpenFilePickerAsync()
+        => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        _files.AddRange(e.GetMultipleFiles());
+
+    }
+
+    private void SetDragClass()
+        => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+        => _dragClass = DefaultDragClass;
+
+    private async Task DeleteImage(ArticleImageMetadata image)
+    {
+        _model.Images.Remove(image);
+    }
+
+    private async Task<IEnumerable<Models.ValueStoreItem<int, string>>> SearchArticleValueStore(string value, CancellationToken token)
+    {
+        IEnumerable<Models.ValueStoreItem<int, string>> hits = _articleValueStore;
+
+        if (_model.Id.HasValue)
+        {
+            hits = hits.Where(m => m.Key != _model.Id);
+        }
+        if (_model.ChildLinks != null)
+        {
+            hits = hits.Where(m => !_model.ChildLinks.Select(m => m.ArticleId).Contains(m.Key));
+        }
+
+        if (string.IsNullOrEmpty(value))
+        {
+
+        }
+        else
+        {
+            hits = hits.Where(m => m.Value.Contains(value));
+        }
+
+        return hits;
+    }
+
+    private async Task LinkAutoCompleteValueChanged()
+    {
+        _addLinkButtonDisabled = _linkAutoComplete.Value == null;
+    }
+
+    private async Task AddChildLink()
+    {
+        var value = _linkAutoComplete.Value;
+        if (_model.ChildLinks == null)
+        {
+            _model.ChildLinks = new List<ArticleLink>();
+        }
+        _model.ChildLinks.Add(new ArticleLink { ArticleId = value.Key, ArticleName = value.Value, GroupName = _linkGroupName });
+        await _linkAutoComplete.ResetAsync();
+    }
+
+    private async Task DeleteLink(ArticleLink link)
+    {
+        _model.ChildLinks.Remove(link);
+    }
+
+
+    private async Task<IEnumerable<Models.ValueStoreItem<int, string>>> SearchTagValueStore(string value, CancellationToken token)
+    {
+        IEnumerable<Models.ValueStoreItem<int, string>> hits = _tagsValueStore;
+
+        if (_model.Tags != null)
+        {
+            hits = hits.Where(m => !_model.Tags.Select(m => m.Id).Contains(m.Key));
+        }
+
+        if (string.IsNullOrEmpty(value))
+        {
+
+        }
+        else
+        {
+            hits = hits.Where(m => m.Value.Contains(value));
+        }
+
+        return hits;
+    }
+
+    private async Task AddArticleTag(Models.ValueStoreItem<int, string> value)
+    {
+        if (_model.Tags == null)
+        {
+            _model.Tags = new List<ArticleTag>();
+        }
+        _model.Tags.Add(new ArticleTag { Id = value.Key, Tag = value.Value });
+        await _tagAutoComplete.ResetAsync();
+        Snackbar.Add($"Tag \"{value.Value}\" tillagd.", Severity.Info);
+    }
+
+    private async Task NewArticleTag(string text)
+    {
+        if (_model.Tags == null)
+        {
+            _model.Tags = new List<ArticleTag>();
+        }
+
+        if (_model.Tags.Select(m => m.Tag).Contains(text))
+        {
+            Snackbar.Add("Tag finns redan på artikeln.", Severity.Warning);
+        }
+        else
+        {
+            var existingTag = _tagsValueStore.FirstOrDefault(m => m.Value == text);
+            if (existingTag != null)
+            {
+                await AddArticleTag(existingTag);
+            }
+            else
+            {
+                _model.Tags.Add(new ArticleTag { Tag = text });
+                Snackbar.Add($"Tag \"{text}\" tillagd.", Severity.Info);
+                await _tagAutoComplete.ResetAsync();
+            }
+        }
+    }
+
+    private async Task DeleteTag(ArticleTag tag)
+    {
+        _model.Tags.Remove(tag);
+        Snackbar.Add($"Tag \"{tag.Tag}\" borttagen.", Severity.Info);
+    }
+
 
 }

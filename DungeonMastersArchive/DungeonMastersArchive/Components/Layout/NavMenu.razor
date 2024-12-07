@@ -4,12 +4,10 @@
 
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Sagan</MudNavLink><!--tabort-->
-    <MudNavLink Href="article/4" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Artikeltest</MudNavLink><!--tabort-->
-    <MudNavLink Href="articles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Artiklar</MudNavLink><!--tabort-->
-    <MudNavLink Href="users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SupervisedUserCircle">Spelare</MudNavLink> <!--tabort-->
     <AuthorizeView>
         <Authorized>
             <MudNavLink Href="articles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Artiklar</MudNavLink>
+            <MudNavLink Href="campaigns" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Kampanjer</MudNavLink>
             <MudNavLink Href="users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SupervisedUserCircle">Spelare</MudNavLink>
             <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
             

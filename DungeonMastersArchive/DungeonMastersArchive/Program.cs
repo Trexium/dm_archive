@@ -40,7 +40,12 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthorizationCore(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim("Role", "1"));
+    options.AddPolicy("DM", policy => policy.RequireClaim("Role", "2", "1"));
+    options.AddPolicy("Player", policy => policy.RequireClaim("Role", "3", "2", "1"));
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 

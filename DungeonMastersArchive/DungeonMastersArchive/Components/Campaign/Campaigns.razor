@@ -1,10 +1,12 @@
 ﻿@page "/campaigns"
 @using DungeonMastersArchive.Models.Campaign
 @using DungeonMastersArchive.Services
+@using Microsoft.AspNetCore.Authorization
 
 @inject IUserService UserService
 @inject ICampaignService CampaignService
 
+@attribute [Authorize(Policy = "Admin")]
 
 <MudText Typo="Typo.h3">Kampanjer</MudText>
 
@@ -59,7 +61,7 @@ else
         _currentUser = await UserService.GetCurrentUser();
         if (_currentUser != null)
         {
-            _model = await CampaignService.GetCampaigns(_currentUser.CurrentCampaignId);
+            _model = await CampaignService.GetCampaigns(_currentUser.Id);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using DungeonMasterArchiveData.Data;
 using DungeonMastersArchive.Data;
+using DungeonMastersArchive.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,11 @@ namespace DungeonMastersArchive.Components.Account
     public class MySignInManager<TUser> : SignInManager<TUser> where TUser : ApplicationUser
     {
         private readonly DMArchiveContext _dmArchiveContext;
-        public MySignInManager(UserManager<TUser> userManager, IHttpContextAccessor contextAccessor, IUserClaimsPrincipalFactory<TUser> claimsFactory, IOptions<IdentityOptions> optionsAccessor, ILogger<SignInManager<TUser>> logger, IAuthenticationSchemeProvider schemes, IUserConfirmation<TUser> confirmation, DMArchiveContext dmArchiveContext) : base(userManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation)
+        private readonly SystemDefaults _systemDefaults;
+        public MySignInManager(UserManager<TUser> userManager, IHttpContextAccessor contextAccessor, IUserClaimsPrincipalFactory<TUser> claimsFactory, IOptions<IdentityOptions> optionsAccessor, ILogger<SignInManager<TUser>> logger, IAuthenticationSchemeProvider schemes, IUserConfirmation<TUser> confirmation, DMArchiveContext dmArchiveContext, IOptions<SystemDefaults> systemDefauls) : base(userManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation)
         {
             _dmArchiveContext = dmArchiveContext;
+            _systemDefaults = systemDefauls.Value;
         }
 
         public override ILogger Logger { get => base.Logger; set => base.Logger = value; }
@@ -107,12 +110,23 @@ namespace DungeonMastersArchive.Components.Account
             if (claimsToRemove != null && claimsToRemove.Any())
             {
                 await this.UserManager.RemoveClaimsAsync(user, claimsToRemove);
-                
             }
+
+            await this.UserManager.AddClaimAsync(user, new Claim("UserId", archiveUser.Id.ToString()));
+            await this.UserManager.AddClaimAsync(user, new Claim("Name", archiveUser.Name));
+
+            if (user.UserName == _systemDefaults.AppAdmin)
+            {
+                await this.UserManager.AddClaimAsync(user, new Claim("Role", "1"));
+            }
+            else
+            {
+                await this.UserManager.AddClaimAsync(user, new Claim("Role", archiveUser.UserCampaignRoles.First(m => m.CampaignId == archiveUser.CurrentCampaignId.Value).RoleId.ToString()));
+            }
+
             if (archiveUser.CurrentCampaignId != null)
             {
                 await this.UserManager.AddClaimAsync(user, new Claim("Campaign", archiveUser.CurrentCampaignId.Value.ToString()));
-                await this.UserManager.AddClaimAsync(user, new Claim("Role", archiveUser.UserCampaignRoles.First(m => m.CampaignId == archiveUser.CurrentCampaignId.Value).RoleId.ToString()));
             }
 
             return await base.PasswordSignInAsync(user, password, isPersistent, lockoutOnFailure);

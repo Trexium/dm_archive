@@ -2,10 +2,14 @@
 @using DungeonMastersArchive.Components.Article.Shared
 @using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
+@using System.Security.Claims
 
 @inject IArticleService ArticleService
 @inject IUserService UserService
 @inject IImageService ImageService
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 @if (_model == null)
 {
@@ -77,18 +81,19 @@ else
     public int Id { get; set; }
 
     private Models.Article.Article _model;
-    private Models.User.User _user;
+
+    private ClaimsPrincipal _aspUser;
 
 
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _aspUser = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        _user = await UserService.GetCurrentUser();
         _model = await ArticleService.GetArticle(Id);
     }
 }
