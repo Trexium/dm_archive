@@ -2,12 +2,15 @@
 @using DungeonMastersArchive.Models
 @using DungeonMastersArchive.Services
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 @inherits LayoutComponentBase
 
 @inject IUserService UserService
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject IValueStoreService ValueStoreService
+@* @inject RoleStore<IdentityRole> RoleStore
+@inject RoleManager<IdentityRole> RoleManager *@
 
 <MudThemeProvider IsDarkMode="true" />
 <MudPopoverProvider />
@@ -80,11 +83,10 @@
         {
             _currentUser = await UserService.GetCurrentUser();
             var aspUser = await UserStore.FindByIdAsync(_currentUser.AspUserId, CancellationToken.None);
-            var rolesToRemove = await UserManager.GetRolesAsync(aspUser);
-            await UserManager.RemoveFromRolesAsync(aspUser, rolesToRemove);
-            await UserManager.AddToRoleAsync(aspUser, _currentUser.CurrentRoleId.ToString());
             var claimsToRemove = await UserManager.GetClaimsAsync(aspUser);
+            await UserManager.RemoveClaimsAsync(aspUser, claimsToRemove);
             await UserManager.AddClaimAsync(aspUser, new System.Security.Claims.Claim("Campaign", _currentUser.CurrentCampaignId.ToString()));
+            await UserManager.AddClaimAsync(aspUser, new System.Security.Claims.Claim("Role", _currentUser.CurrentRoleId.ToString()));
         }
         else
         {

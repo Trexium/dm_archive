@@ -5,6 +5,7 @@ using DungeonMastersArchive.Data;
 using DungeonMastersArchive.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
@@ -39,6 +40,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
+builder.Services.AddAuthorizationCore();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -52,7 +55,10 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddSignInManager()
+    .AddSignInManager<MySignInManager<ApplicationUser>>()
+    //.AddRoles<IdentityRole>()
+    //.AddRoleManager<RoleManager<IdentityRole>>()
+    //.AddRoleStore<RoleStore<IdentityRole, ApplicationDbContext>>()
     .AddDefaultTokenProviders();
 
 var emailSettings = builder.Configuration.GetSection("EmailSenderSettings");

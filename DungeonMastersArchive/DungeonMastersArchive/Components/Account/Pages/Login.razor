@@ -1,6 +1,7 @@
 ﻿@page "/Account/Login"
 
 @using System.ComponentModel.DataAnnotations
+@using DungeonMastersArchive.Services
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using DungeonMastersArchive.Data
@@ -9,6 +10,7 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IUserService UserService
 
 <PageTitle>Logga in</PageTitle>
 
@@ -17,7 +19,7 @@
     <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
         <MudStack Row="true">
             <MudPaper Class="flex-grow-1 pa-6 ma-2" Elevation="3">
-                
+
                 <StatusMessage Message="@errorMessage" />
                 <DataAnnotationsValidator />
                 <MudText GutterBottom="true" Typo="Typo.body1">Använd ditt SLArmour-konto för att logga in.</MudText>
@@ -25,13 +27,13 @@
                 <MudGrid>
                     <MudItem md="12">
                         <MudStaticTextField For="@(() => Input.Email)" @bind-Value="Input.Email"
-                                            Label="E-post" Placeholder="name@slarmour.se"
-                                            UserAttributes="@(new() { { "autocomplete", "true" }, { "aria-required", "true" } } )" />
+                        Label="E-post" Placeholder="name@slarmour.se"
+                        UserAttributes="@(new() { { "autocomplete", "true" }, { "aria-required", "true" } } )" />
                     </MudItem>
                     <MudItem md="12">
                         <MudStaticTextField For="@(() => Input.Password)" @bind-Value="Input.Password"
-                                            Label="Lösenord" InputType="InputType.Password" Placeholder="password"
-                                            UserAttributes="@(new() { { "autocomplete", "current-password" }, { "aria-required", "true" } } )" />
+                        Label="Lösenord" InputType="InputType.Password" Placeholder="password"
+                        UserAttributes="@(new() { { "autocomplete", "current-password" }, { "aria-required", "true" } } )" />
                     </MudItem>
                     <MudItem md="12">
                         <MudStaticCheckBox For="@(() => Input.RememberMe)" @bind-Value="Input.RememberMe">Kom ihåg mig</MudStaticCheckBox>
@@ -81,6 +83,8 @@
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
+            var currentUser = UserService.GetCurrentUser();
+            
             Logger.LogInformation("User logged in.");
             RedirectManager.RedirectTo(ReturnUrl);
         }
