@@ -1,11 +1,15 @@
 ﻿@using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 
 @inject IArticleService ArticleService
 @inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
+@attribute [Authorize(Policy = "Player")]
 
-@if (_model != null && _user != null)
+@if (_model != null && _principal.Identity.IsAuthenticated)
 {
     <MudStack>
         <MudText Typo="Typo.h6" GutterBottom="true">Relaterat</MudText>
@@ -31,18 +35,18 @@
     [Parameter]
     public int ArticleId { get; set; }
 
-    private Models.User.User _user;
     private List<ArticleLink> _allLinks;
     private Dictionary<string, List<ArticleLink>> _model;
+    private ClaimsPrincipal _principal;
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _principal = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        _user = await UserService.GetCurrentUser();
         _model = await ArticleService.GetArticleLinks(ArticleId);
     }
 }

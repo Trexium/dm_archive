@@ -82,14 +82,15 @@ else
 
     private Models.Article.Article _model;
 
-    private ClaimsPrincipal _aspUser;
+    private ClaimsPrincipal _principal;
 
 
 
     protected override async Task OnInitializedAsync()
     {
+        // @inject AuthenticationStateProvider AuthenticationStateProvider
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        _aspUser = authState.User;
+        _principal = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()

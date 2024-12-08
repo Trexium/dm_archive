@@ -1,13 +1,17 @@
 ﻿@using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
 
 @inject IUserService UserService
 @inject IArticleService ArticleService
 @inject IImageService ImageService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize(Policy = "Player")]
 
 
-
-@if (_model != null && _model.Any() && _user != null)
+@if (_model != null && _model.Any() && _principal != null)
 {
     <MudStack>
         <MudText Typo="Typo.h6" GutterBottom="true">Bilder</MudText>
@@ -48,8 +52,8 @@
     [Parameter]
     public int ArticleId { get; set; }
 
-    private Models.User.User _user;
     private List<ArticleImageMetadata> _model;
+    private ClaimsPrincipal _principal;
 
     private MudCarousel<ArticleImageMetadata>? _carousel;
     private MudCarousel<ArticleImageMetadata>? _messageBoxCarousel;
@@ -61,12 +65,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _principal = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        _user = await UserService.GetCurrentUser();
         _model = await ArticleService.GetArticleImages(ArticleId);
     }
 

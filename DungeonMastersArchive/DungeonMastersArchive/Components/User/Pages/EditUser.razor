@@ -1,11 +1,14 @@
 ﻿@page "/edit-user/{id:int?}"
 @using DungeonMastersArchive.Data
+@using DungeonMastersArchive.Extenions
 @using DungeonMastersArchive.Models
 @using DungeonMastersArchive.Services
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Options
 @using System.Text
+@using System.Security.Claims
 
 @inject IUserService UserService
 @inject ISnackbar Snackbar
@@ -13,6 +16,9 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject IOptions<SystemDefaults> SystemDefaults
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize(Policy = "DM")]
 
 @if (_model == null)
 {
@@ -65,7 +71,7 @@ else
     public int? Id { get; set; }
 
     private Models.User.UserEdit _model;
-    private Models.User.User _currentUser;
+    private ClaimsPrincipal _principal;
     private List<Models.ValueStoreItem<int?, string>> _roles;
 
     private MudForm _form;
@@ -73,16 +79,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _principal = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        _currentUser = await UserService.GetCurrentUser();
         _roles = await ValueStoreService.GetRoles();
         if (Id.HasValue)
         {
-            _model = await UserService.GetEditUser(Id.Value, _currentUser.CurrentCampaignId);
+            _model = await UserService.GetEditUser(Id.Value, _principal.GetCampaign());
         }
         else
         {
@@ -127,7 +133,7 @@ else
             {
                 try
                 {
-                    _model = await UserService.SaveUser(_model, _currentUser.CurrentCampaignId);
+                    _model = await UserService.SaveUser(_model, _principal.GetCampaign());
                     Snackbar.Add($"Den nya användaren ({_model.Name}) har skapats.", Severity.Success);
                 }
                 catch (Exception ex)
@@ -141,7 +147,7 @@ else
             {
                 try
                 {
-                    _model = await UserService.SaveUser(_model, _currentUser.CurrentCampaignId);
+                    _model = await UserService.SaveUser(_model, _principal.GetCampaign());
                     Snackbar.Add($"Ändringar på användaren ({_model.Name}) har sparats.", Severity.Success);
                 }
                 catch (Exception ex)

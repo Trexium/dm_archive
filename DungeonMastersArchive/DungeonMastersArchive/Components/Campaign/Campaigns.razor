@@ -1,10 +1,13 @@
 ﻿@page "/campaigns"
+@using DungeonMastersArchive.Extenions
 @using DungeonMastersArchive.Models.Campaign
 @using DungeonMastersArchive.Services
 @using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 
 @inject IUserService UserService
 @inject ICampaignService CampaignService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @attribute [Authorize(Policy = "Admin")]
 
@@ -48,20 +51,20 @@ else
 
 @code {
     private List<CampaignMini> _model;
-    private Models.User.User _currentUser;
+    private ClaimsPrincipal _principal;
 
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _principal = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        _currentUser = await UserService.GetCurrentUser();
-        if (_currentUser != null)
+        if (_principal.GetUserId() > 0)
         {
-            _model = await CampaignService.GetCampaigns(_currentUser.Id);
+            _model = await CampaignService.GetCampaigns(_principal.GetUserId());
         }
     }
 }

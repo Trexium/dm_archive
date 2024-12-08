@@ -1,10 +1,16 @@
 ﻿@page "/articles"
+@using DungeonMastersArchive.Extenions
 @using DungeonMastersArchive.Models.Article
 @using DungeonMastersArchive.Services
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
 
 @inject IArticleService ArticleService
 @inject ISnackbar Snackbar
 @inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize(Policy = "DM")]
 
 <MudText Typo="Typo.h3">Artiklar</MudText>
 
@@ -65,19 +71,19 @@ else
 
 @code {
     private List<ArticleMini> _model;
-    private Models.User.User _currentUser;
+    private ClaimsPrincipal _principal;
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _principal = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        _currentUser = await UserService.GetCurrentUser();
-        if (_currentUser != null)
+        if (_principal != null && _principal.HasCampaign())
         {
-            _model = await ArticleService.GetArticles(_currentUser.CurrentCampaignId);
+            _model = await ArticleService.GetArticles(_principal.GetCampaign());
         }
 
     }

@@ -25,7 +25,7 @@ namespace DungeonMastersArchive.Services
         Task<bool> DeleteUser(int userId);
         Task<bool> UndeleteUser(int userId);
         Task<UserEdit> SaveUser(UserEdit user, int campaignId);
-        Task<bool> SetCurrentCampaign(int userId, int campaignId);
+        Task<int> SetCurrentCampaign(int userId, int campaignId);
         Task<bool> AddUserToCampaign(int userId, int campaignId, int roleId, bool setAsCurrent = false);
 
     }
@@ -46,23 +46,24 @@ namespace DungeonMastersArchive.Services
             _systemDefaults = systemDefaults.Value;
         }
 
-        public async Task<bool> SetCurrentCampaign(int userId, int campaignId)
+        public async Task<int> SetCurrentCampaign(int userId, int campaignId)
         {
             try
             {
-                var dbUser = _context.ArchiveUsers.FirstOrDefault(m => m.Id == userId);
+                var dbUser = _context.ArchiveUsers.Include(m => m.UserCampaignRoles).FirstOrDefault(m => m.Id == userId);
                 if (dbUser != null)
                 {
                     dbUser.CurrentCampaignId = campaignId;
                     await _context.SaveChangesAsync();
-                    return true;
+                    var roleId = dbUser.UserCampaignRoles.FirstOrDefault(m => m.CampaignId == campaignId)?.RoleId ?? 0;
+                    return roleId;
                 }
             }
             catch (Exception ex)
             {
 
             }
-            return false;
+            return 0;
         }
 
         public async Task<bool> AddUserToCampaign(int userId, int campaignId, int roleId, bool setAsCurrent = false)

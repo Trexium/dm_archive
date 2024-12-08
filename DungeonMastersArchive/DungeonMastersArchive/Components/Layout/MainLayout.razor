@@ -1,16 +1,18 @@
 ﻿@using DungeonMastersArchive.Data
+@using DungeonMastersArchive.Extenions
 @using DungeonMastersArchive.Models
 @using DungeonMastersArchive.Services
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Identity.EntityFrameworkCore
+@using System.Security.Claims
 @inherits LayoutComponentBase
 
 @inject IUserService UserService
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject IValueStoreService ValueStoreService
-@* @inject RoleStore<IdentityRole> RoleStore
-@inject RoleManager<IdentityRole> RoleManager *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SignInManager<ApplicationUser> SignInManager
 
 <MudThemeProvider IsDarkMode="true" />
 <MudPopoverProvider />
@@ -21,10 +23,15 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">SL-Armour</MudText>
         <MudSpacer />
-        @if (_availableCampaigns != null && _currentUser != null)
+        @if (_availableCampaigns != null && _principal.Identity.IsAuthenticated)
         {
 
-            <MudSelect Class="pa-2" AdornmentColor="Color.Primary" Label="Aktuell kampanj" T="int" @bind-Value="_currentUser.CurrentCampaignId" OnClose="ChangeCampaign">
+            <MudSelect Class="pa-2" AdornmentColor="Color.Primary" Label="Aktuell kampanj" T="int" Value="@_currentCampaign" ValueChanged="ChangeCampaign">
+                @if (_currentCampaign == 0)
+                {
+                    <MudSelectItem Value="0">Välj en kampanj...</MudSelectItem>
+                }
+
                 @foreach (var campaign in _availableCampaigns)
                 {
                     <MudSelectItem Value="@campaign.Key">@campaign.Value</MudSelectItem>
@@ -52,23 +59,26 @@
 @code {
     private bool _drawerOpen = true;
 
-    private Models.User.User _currentUser;
+    private ClaimsPrincipal _principal;
 
     private List<ValueStoreItem<int, string>> _availableCampaigns;
+
+    private int _currentCampaign;
 
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _principal = authState.User;
 
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        _currentUser = await UserService.GetCurrentUser();
-
-        if (_currentUser != null)
+        if (_principal.Identity.IsAuthenticated)
         {
-            _availableCampaigns = await ValueStoreService.GetUserCampaigns(_currentUser.Id);
+            _availableCampaigns = await ValueStoreService.GetUserCampaigns(_principal.GetUserId());
+            _currentCampaign = _principal.GetCampaign();
         }
     }
 
@@ -77,21 +87,25 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    private async Task ChangeCampaign()
+    private async Task ChangeCampaign(int campaignId)
     {
-        if (await UserService.SetCurrentCampaign(_currentUser.Id, _currentUser.CurrentCampaignId))
-        {
-            _currentUser = await UserService.GetCurrentUser();
-            var aspUser = await UserStore.FindByIdAsync(_currentUser.AspUserId, CancellationToken.None);
-            var claimsToRemove = await UserManager.GetClaimsAsync(aspUser);
-            await UserManager.RemoveClaimsAsync(aspUser, claimsToRemove);
-            await UserManager.AddClaimAsync(aspUser, new System.Security.Claims.Claim("Campaign", _currentUser.CurrentCampaignId.ToString()));
-            await UserManager.AddClaimAsync(aspUser, new System.Security.Claims.Claim("Role", _currentUser.CurrentRoleId.ToString()));
-        }
-        else
-        {
+        var roleId = await UserService.SetCurrentCampaign(_principal.GetUserId(), campaignId);
 
-        }
+        var user = await UserStore.FindByIdAsync(_principal.GetAspUserId(), CancellationToken.None);
+        // await SignInManager.SignOutAsync();
+        // var claimsToRemove = _principal.GetFungableClaims();
+        // foreach (var claim in claimsToRemove)
+        // {
+        //     (_principal.Identity as ClaimsIdentity).RemoveClaim(claim);
+        // }
+        // (_principal.Identity as ClaimsIdentity).AddClaim()
+
+
+        // await UserManager.RemoveClaimsAsync(user, claimsToRemove);
+        // await UserManager.AddClaimAsync(user, new System.Security.Claims.Claim("Campaign", campaignId.ToString()));
+        // await UserManager.AddClaimAsync(user, new System.Security.Claims.Claim("Role", roleId.ToString()));
+        // await SignInManager.PasswordSignInAsync(user.UserName, "");
+        
     }
 
 }

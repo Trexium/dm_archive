@@ -1,8 +1,14 @@
 ﻿@page "/users"
+@using DungeonMastersArchive.Extenions
 @using DungeonMastersArchive.Models.User
 @using DungeonMastersArchive.Services
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 
 @inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize(Policy = "DM")]
 
 <MudText Typo="Typo.h3">Spelare</MudText>
 
@@ -32,16 +38,16 @@
 
 @code {
     private List<UserMini> _model;
-
+    private ClaimsPrincipal _principal;
 
     protected override async Task OnInitializedAsync()
     {
-
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _principal = authState.User;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        var user = await UserService.GetCurrentUser();
-        _model = await UserService.GetUsers(user.CurrentCampaignId);
+        _model = await UserService.GetUsers(_principal.GetCampaign());
     }
 }

@@ -106,14 +106,14 @@ namespace DungeonMastersArchive.Components.Account
         public override async Task<SignInResult> PasswordSignInAsync(TUser user, string password, bool isPersistent, bool lockoutOnFailure)
         {
             var archiveUser = _dmArchiveContext.ArchiveUsers.Include(m => m.UserCampaignRoles).FirstOrDefault(m => m.AspNetUserId == user.Id);
-            var claimsToRemove = await this.UserManager.GetClaimsAsync(user);
+            var claimsToRemove = (await this.UserManager.GetClaimsAsync(user)).Where(m => m.Type == "UserId" || m.Type == "Name" || m.Type == "Role" || m.Type == "Campaign");
             if (claimsToRemove != null && claimsToRemove.Any())
             {
                 await this.UserManager.RemoveClaimsAsync(user, claimsToRemove);
             }
 
-            await this.UserManager.AddClaimAsync(user, new Claim("UserId", archiveUser.Id.ToString()));
-            await this.UserManager.AddClaimAsync(user, new Claim("Name", archiveUser.Name));
+            await this.UserManager.AddClaimAsync(user, new Claim("UserId", archiveUser.Id.ToString(), "int"));
+            await this.UserManager.AddClaimAsync(user, new Claim("Name", archiveUser.Name, "string"));
 
             if (user.UserName == _systemDefaults.AppAdmin)
             {
@@ -124,10 +124,8 @@ namespace DungeonMastersArchive.Components.Account
                 await this.UserManager.AddClaimAsync(user, new Claim("Role", archiveUser.UserCampaignRoles.First(m => m.CampaignId == archiveUser.CurrentCampaignId.Value).RoleId.ToString()));
             }
 
-            if (archiveUser.CurrentCampaignId != null)
-            {
-                await this.UserManager.AddClaimAsync(user, new Claim("Campaign", archiveUser.CurrentCampaignId.Value.ToString()));
-            }
+
+            await this.UserManager.AddClaimAsync(user, new Claim("Campaign", archiveUser.CurrentCampaignId?.ToString() ?? "0"));
 
             return await base.PasswordSignInAsync(user, password, isPersistent, lockoutOnFailure);
         }

@@ -388,7 +388,7 @@ namespace DungeonMastersArchive.Services
             dbArticle.ArticleText = article.ArticleText;
             dbArticle.ArticleName = article.ArticleName;
             dbArticle.ArticleTypeId = int.TryParse(article.ArticleTypeId, out int result) ? result : 8;
-            dbArticle.CampaignId = 2; //dbArticle.CampaignId = article.CampaignId;
+            dbArticle.CampaignId = user.CurrentCampaignId; //dbArticle.CampaignId = article.CampaignId;
 
 
             if (!article.Id.HasValue)
