@@ -1,6 +1,8 @@
-﻿using DungeonMastersArchive.Data;
+﻿using DungeonMasterArchiveData.Data;
+using DungeonMastersArchive.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace DungeonMastersArchive.Components.Account
@@ -8,9 +10,11 @@ namespace DungeonMastersArchive.Components.Account
     public class ApplicationUserClaimsTransformation : IClaimsTransformation
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        public ApplicationUserClaimsTransformation(UserManager<ApplicationUser> userManager)
+        private readonly DMArchiveContext _context;
+        public ApplicationUserClaimsTransformation(UserManager<ApplicationUser> userManager, DMArchiveContext context)
         {
             _userManager = userManager;
+            _context = context;
         }
 
 
@@ -22,18 +26,16 @@ namespace DungeonMastersArchive.Components.Account
             var user = await _userManager.GetUserAsync(principal);
             if (user == null) return principal;
 
+            var archiveUser = _context.ArchiveUsers.Include(m => m.UserCampaignRoles).FirstOrDefault(m => m.AspNetUserId == user.Id);
+            if (archiveUser == null) return principal;
+
             // Add or replace identity.Claims.
 
+            var campaignId = archiveUser.CurrentCampaignId ?? 0;
+            var roleId = campaignId != 0 ? archiveUser.UserCampaignRoles.First(m => m.CampaignId == campaignId).RoleId : 0;
 
-            if (!principal.HasClaim(c => c.Type == "Campaign"))
-            {
-                identity.AddClaim(new Claim("Campaign", user.));
-
-            }
-            if (!principal.HasClaim(c => c.Type == ClaimTypes.Surname))
-            {
-                identity.AddClaim(new Claim(ClaimTypes.Surname, user.LastName));
-            }
+            identity.AddClaim(new Claim("Campaign", campaignId.ToString()));
+            identity.AddClaim(new Claim("Role", roleId.ToString()));
 
             return new ClaimsPrincipal(identity);
         }

@@ -12,7 +12,7 @@ using System;
 namespace DungeonMastersArchive.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("00000000000000_CreateIdentitySchema")]
+    [Migration("CreateIdentitySchema")]
     partial class CreateIdentitySchema
     {
         /// <inheritdoc />

@@ -3,6 +3,7 @@ using DungeonMastersArchive.Components;
 using DungeonMastersArchive.Components.Account;
 using DungeonMastersArchive.Data;
 using DungeonMastersArchive.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -76,7 +77,8 @@ builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddSingleton<IImageService, ImageService>();
 builder.Services.AddScoped<IDateService, DateService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
-builder.Services.AddScoped<Microsoft.AspNetCore.Server.HttpSys.AuthenticationManager>();
+//builder.Services.AddScoped<Microsoft.AspNetCore.Server.HttpSys.AuthenticationManager>();
+builder.Services.AddScoped<IClaimsTransformation, ApplicationUserClaimsTransformation>();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
